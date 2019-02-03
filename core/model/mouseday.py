@@ -8,6 +8,7 @@ HCM Experiment Class.
 Copyright (c) 2018. All rights reserved.
 
 Tecott Lab UCSF
+
 """
 import numpy as np
 import logging
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class MouseDay(object):
-    """ HCM mouseday class """
+    """HCM mouseday class. """
 
     def __init__(self, mouse=None, day=1):
         self.experiment = None or mouse.experiment
@@ -37,52 +38,52 @@ class MouseDay(object):
 
     @property
     def label(self):
-        """ returns tuple (group_name, mouse_number, day) """
+        """Returns tuple (group_name, mouse_number, day). """
         return self.group.name, self.mouse.name, self.day
 
     @property
     def is_ignored(self):
-        """ returns True if mouseday is ignored """
+        """Returns True if mouseday is ignored. """
         return self.label in self.experiment.all_ignored_mousedays()
 
     @property
     def label_short(self):
-        """ returns tuple (group_number, mouse_number, day) """
+        """Returns tuple (group_number, mouse_number, day). """
         return self.group.number, self.mouse.number, self.day
 
     @property
     def label_long(self):
-        """ returns tuple (group_number, group_name, individual_number, mouse_number, day) """
+        """Returns tuple (group_number, group_name, individual_number, mouse_number, day). """
         return self.group.number, self.group.name, self.mouse.number, self.mouse.name, self.day
 
     @property
     def filename_long(self):
-        """ returns string for filename """
+        """Returns string for filename. """
         return 'group{}_{}_indv{}_{}_d{}'.format(*self.label_long)
 
     @property
     def active_states(self):
-        """ returns (N, 2) array, N number of active states, (active_state_start_time, active_state_stop_time)
-            time is seconds after midnight (HCM time) 
+        """Returns (N, 2) array, N number of active states, (active_state_start_time, active_state_stop_time)
+            time measured in seconds after midnight (HCM time).
         """
         return self.load_npy_data(keys=['AS_timeset'])[0]
 
     @property
     def inactive_states(self):
-        """ same as active_states(self) for inactive states """
+        """Same as self.active_states() for inactive states. """
         return self.load_npy_data(keys=['IS_timeset'])[0]
 
     def bouts(self, ev_type):
-        """ same as active_states(self) for bouts, given event_type ('F', 'D', 'L') """
+        """Same as self.active_states() for bouts, given event_type ('F', 'D', 'L') """
         return self.load_npy_data(keys=['{}B_timeset'.format(ev_type)])[0]
 
     def events(self, ev_type):
-        """ same as active_states(self) for events, given event_type ('F', 'D', 'L') """
+        """Same as self.active_states() for events, given event_type ('F', 'D', 'L') """
         return self.load_npy_data(keys=['{}_timeset'.format(ev_type)])[0]
 
     @property
     def coordinates(self):
-        """ returns list of arrays, components:
+        """Returns list of arrays, components:
             - 0: HCM time t
             - 1: x corrected
             - 2: y corrected
@@ -91,13 +92,13 @@ class MouseDay(object):
 
     @property
     def active_states_counts(self):
-        """ return number of active states"""
+        """Returns number of active states. """
         arr = self.active_states
         return arr.shape[0] if arr is not None else 0
 
     # load/save data
     def load_raw_data(self):
-        """ loads photobeam, lickometer and movement from PE, LE, ME and MSI files """
+        """Loads photobeam, lickometer and movement from PE, LE, ME and MSI files. """
         from ..helpers import load_raw
         mouse_number = int(self.mouse.name.strip('M'))
         msi_dict = self.experiment.msi_dict[self.group.name][mouse_number][self.day]
@@ -106,7 +107,7 @@ class MouseDay(object):
         self.data['preprocessing'] = load_raw.from_raw(msi_dict)
 
     def save_npy_data(self, keys=None):
-        """ saves preprocessed data as npy stored in mouseday data dictionary """
+        """Saves preprocessed data as npy, from data stored in mouseday data dictionary. """
         data = self.data['preprocessing']
         keys = keys or data.keys()
         for key in keys:
@@ -116,7 +117,7 @@ class MouseDay(object):
                 np.save(fname, data[key])
 
     def load_npy_data(self, keys=None):
-        """ loads variables in "keys" into mouseday data dictionary """
+        """Loads variables in "keys" into mouseday data dictionary """
         keys = keys or self.experiment.get_preprocessing_data_keys(subdir='preprocessing')
         arrays = list()
         for key in keys:
@@ -142,7 +143,7 @@ class MouseDay(object):
         return arrays
 
     def cut_md_data(self, tbin):
-        """ intersects mouseday data with tbin = (t_start, t_end) """
+        """Intersects mouseday data with tbin = (t_start, t_end). """
         from util.utils import intersect_timeset_with_timebin, timestamps_index_to_timebin
         cut_data = dict()
         for key, arr in self.data['preprocessing'].iteritems():
@@ -160,7 +161,7 @@ class MouseDay(object):
     # raw data preprocessing methods
     #  device events
     def raw_ingestion_timeset(self, ev_type):
-        """ returns uncorrected PE vs. LE events """
+        """Returns uncorrected PE vs. LE events. """
         key = None
         if ev_type == 'F':
             key = '_photobeam_data'
@@ -171,12 +172,12 @@ class MouseDay(object):
         return ev
 
     def process_device_data(self):
-        """ computes and stroes in mouseday data dictionary:
+        """Computes and stores in mouseday data dictionary:
             - raw (uncorrected) events timesets (intervals)
             - timestamps index at Feeder and Lickometer
             - timesets (intervals) at Feeder and Lickometer
             - timesets for events at device where mouse is not at device cell, if any (2x4 grid discretization)
-            - events timesets corrected for position at device
+            - events timesets corrected for position at device.
         """
         from util.utils import timeset_at_location, check_ingestion_position_concurrency
         m = [self.data['preprocessing'][x] for x in ['t', 'x', 'y']]
@@ -202,12 +203,12 @@ class MouseDay(object):
 
     # position and homebase
     def designate_homebase(self):
-        """ returns homebase (single or domino-2 cells) as list of tuples (ybins, xbins)
-            based on 24H occupancy times for 2 x 4 discretization of cage.
-            coordinates system:
+        """Returns homebase (single or domino-2 cells) as list of tuples (ybins, xbins) based on 24H occupancy times 
+            for 2 x 4 discretization of cage. 
+            Coordinate system:
              - (0, 0) top-left niche,
-             - (3, 1) bottom-right lickometer
-            Most mice will return (0, 0)
+             - (3, 1) bottom-right lickometer.
+            Most mice will return (0, 0).
         """
         from util.utils import max_domino
         bin_times = self.data['preprocessing']['xbins2_ybins4_24H_bin_times']
@@ -221,7 +222,7 @@ class MouseDay(object):
         return designated
 
     def process_homebase_data(self):
-        """designates homebase and computes timesets at homebase """
+        """Designates homebase and computes timesets at homebase. """
         from util.cage import Cage
         from core.keys import homebase_2dto1d
         from util.utils import timeset_at_homebase
@@ -243,8 +244,8 @@ class MouseDay(object):
             self.data['preprocessing'][key] = val
 
     def process_platform_data(self):
-        """returns delta times between consecutive displacements, related distances traveled and velocity
-            todo: angle resp. turning angle
+        """Returns delta times between consecutive displacements, related distances traveled and velocity.
+            todo: angle resp. turning angle.
         """
         t, x, y = [self.data['preprocessing'][x] for x in ['t', 'x', 'y']]  # timestamp data
         dt = t[1:] - t[:-1]  # delta_t, s
@@ -260,10 +261,10 @@ class MouseDay(object):
         logger.debug("movement: {} events".format(t.shape[0]))
 
     def position_times_binned(self, bin_type, xbins, ybins):
-        """ returns dataframe with occupancy times data (timebin, cage_grid_cells)
-            timebin based on bin_type:
+        """Returns DataFrame object with occupancy times data (timebin, cage_grid_cells)
+            Timebin based on bin_type:
             - bin_type='7cycles': 24H/DC/LC/AS24H/ASDC/ASLC
-            - bin_type='12bins': bin0/bin1/..../bin11
+            - bin_type='12bins': bin0/bin1/..../bin11.
         """
         import pandas as pd
         from util.utils import position_time_xbins_ybins
@@ -313,7 +314,7 @@ class MouseDay(object):
         return df
 
     def create_position(self, bin_type=None, xbins=None, ybins=None, binary=True):
-        """ creates position data """
+        """Creates position data. """
         if binary:
             from util.utils import position_time_xbins_ybins
             for (xbins, ybins) in [(2, 4), (12, 24)]:
@@ -332,15 +333,15 @@ class MouseDay(object):
             self.experiment.data['position'][self.label] = df
 
     def process_raw_data(self):
-        """ adds ingestion, position and homebase data as (key, value) to mouseday data dictionary """
+        """Adds ingestion, position and homebase data as (key, value) to mouseday data dictionary. """
         self.create_position(binary=True)
         self.process_platform_data()
         self.process_homebase_data()
         self.process_device_data()  # if REMOVE: #self.remove_few_drinking_events()
 
     def create_ingestion_bouts(self, FBD_min=2):
-        """ creates ingestion bouts and adds data as (key, value) to mouseday data dictionary.
-            hardcoded FBD minimum duration [seconds] and BTT bout connection time threshold
+        """Creates ingestion bouts and adds data as (key, value) to mouseday data dictionary.
+            Hardcoded FBD minimum duration [seconds] and BTT bout connection time threshold.
         """
         from util.utils import trim_short_bouts, check_ingestion_bouts_overlap
         for ev_type in ['F', 'D']:
@@ -384,11 +385,10 @@ class MouseDay(object):
             logger.debug("{}: {}={:.4f} mg/s".format(act_to_actlabel[ev_type], coeff_name, coeff))
 
         # check overlap of feeding vs drinking bouts
-        check_ingestion_bouts_overlap(self.data['preprocessing']['FB_timeset'],
-                                      self.data['preprocessing']['DB_timeset'])
+        check_ingestion_bouts_overlap(self.data['preprocessing']['FB_timeset'], self.data['preprocessing']['DB_timeset'])
 
     def create_locomotion_bouts(self):
-        """ creates locomotion bouts and adds data as (key, value) to mouseday data dictionary """
+        """Creates locomotion bouts and adds data as (key, value) to mouseday data dictionary. """
         from util.utils import index_ingestion_bout_and_homebase_timestamps, find_nonzero_runs
         keys = ['t', 'x', 'y', 'distance', 'velocity', 'idx_timestamps_out_hb', 'FB_timeset', 'DB_timeset']
         t, x, y, distance, velocity, idx_out_hb, fbouts, dbouts = [self.data['preprocessing'][x] for x in keys]
@@ -443,7 +443,7 @@ class MouseDay(object):
             self.data['preprocessing'][key] = val
 
     def create_active_states(self):
-        """ creates active states and adds data as (key, value) to mouseday data dictionary """
+        """Creates active states and adds data as (key, value) to mouseday data dictionary. """
         pdata = self.data['preprocessing']
         recording_start_stop = pdata['recording_start_stop_time']
         fb, db, lb = [pdata[x] for x in ['FB_timeset', 'DB_timeset', 'LB_timeset']]
@@ -460,36 +460,37 @@ class MouseDay(object):
     # features methods
     # bouts
     def bout_numbers_in_timebin(self, ev_type, tbin):
-        """ returns number of bouts in timebin, strict sense """
+        """Returns number of bouts in timebin, strict sense. """
         from util.utils import timeset_onsets_in_bin
         return timeset_onsets_in_bin(tset=self.data['preprocessing']['{}B_timeset'.format(ev_type)], tbin=tbin)
 
     def bout_rate_in_timebin(self, ev_type, tbin):
-        """ returns rate (1/sec) of bouts in timebin, onset-based """
+        """Returns rate (1/sec) of bouts in timebin, onset-based. """
         cnt = self.bout_numbers_in_timebin(ev_type, tbin)
         return cnt / np.diff(np.asarray(tbin)).sum()
 
     def bout_durations_in_timebin(self, ev_type, tbin):
-        """ returns time spent in bout in timebin, strict sense """
+        """Returns time spent in bout in timebin, strict sense. """
         from util.utils import timeset_durations_in_timebin
         durs = timeset_durations_in_timebin(tset=self.data['preprocessing']['{}B_timeset'.format(ev_type)], tbin=tbin)
         return durs if len(durs) else np.zeros(1)
 
     def active_state_bout_rate_in_timebin(self, ev_type, tbin):
-        """ returns number of bouts per active state time [1/AS.s] in timebin, strict sense """
+        """Returns number of bouts per active state time [1/AS.s] in timebin, strict sense. """
         as_times = self.active_state_durations_in_timebin(tbin)
         cnt = self.bout_numbers_in_timebin(ev_type, tbin)
         return cnt / as_times.sum() if as_times.sum() else 0
 
     def active_state_bout_probability_in_timebin(self, ev_type, tbin):
-        """ returns ratio of time spent in bout over time spent in active state, or probability, in timebin, strict sense
+        """Returns ratio of time spent in bout over time spent in active state, or probability, in timebin, strict 
+            sense.
         """
         as_durs = self.active_state_durations_in_timebin(tbin)
         bt_durs = self.bout_durations_in_timebin(ev_type, tbin)
         return bt_durs.sum() / as_durs.sum() if as_durs.sum() else 0
 
     def bout_intensities_in_timebin(self, ev_type, tbin, intens_option=1):
-        """ returns average bout intensity [g/sec] in timebin, strict sense """
+        """Returns average bout intensity [g/sec] in timebin, strict sense. """
         ref_tset_name = '{}B_timeset'.format(ev_type)
         durs = self.bout_durations_in_timebin(ev_type, tbin)
         amounts, intensity = None, None
@@ -504,7 +505,7 @@ class MouseDay(object):
         return intensity
 
     def average_bout_features_binned(self, bin_type, ev_type, intens_option=1):
-        """ computes bout features in timebins and adds data as (key, value) to mouseday data dictionary:
+        """Computes bout features in timebins and adds data as (key, value) to mouseday data dictionary:
             - Bout Numbers, or counts [-]
             - Bout Rate [1/hr]
             - Bout Time [s]
@@ -513,7 +514,7 @@ class MouseDay(object):
             - Bout Size [mg], [cm]
             - Bout Duration [s]
             - Bout Intensity [mg/s], [cm/s]
-            bin_type can be ['3cycles', '12bins', '4bins', '24bins']
+            bin_type can be ['3cycles', '12bins', '4bins', '24bins'].
         """
         tbins = get_timebins(bin_type)
         keys = [x.format(ev_type) for x in ['{}BN', '{}BR', 'AS{}BR', '{}BT', 'AS{}BP', '{}BS', '{}BD', '{}BI']]
@@ -553,7 +554,7 @@ class MouseDay(object):
 
     # active state
     def active_state_intensities_in_timebin(self, ev_type, tbin, intens_opt=1):
-        """ returns ingestion and locomotion active state intensities [mg/s resp. cm/s] in time bin, in strict sense """
+        """Returns ingestion and locomotion active state intensities [mg/s resp. cm/s] in time bin, in strict sense. """
         durs = self.active_state_durations_in_timebin(tbin)
         amounts, intensity = None, None
         if ev_type in ['F', 'D']:
@@ -567,41 +568,40 @@ class MouseDay(object):
         return intensity
 
     def active_state_effective_durations_in_timebin(self, tbin):
-        """ returns average duration [sec] of active states in timebin, onset-based """
+        """Returns average duration [sec] of active states in timebin, onset-based. """
         from util.utils import effective_timeset_in_timebin
         durs_eff, _ = effective_timeset_in_timebin(tset=self.data['preprocessing']['AS_timeset'], tbin=tbin)
         return np.asarray(durs_eff) if len(durs_eff) else np.zeros(1)
 
     def active_state_rate_in_timebin(self, tbin):
-        """ returns rate (1/sec) of active states in timebin, onset-based """
+        """Returns rate (1/sec) of active states in timebin, onset-based """
         cnt = self.active_state_numbers_in_timebin(tbin)
         return cnt / np.diff(np.asarray(tbin)).sum()
 
     def active_state_numbers_in_timebin(self, tbin):
-        """ returns numbers, or counts, of active states in timebin, onset-based """
+        """Returns numbers, or counts, of active states in timebin, onset-based. """
         from util.utils import timeset_onsets_in_bin
         return timeset_onsets_in_bin(tset=self.data['preprocessing']['AS_timeset'], tbin=tbin)
 
     def active_state_probability_in_timebin(self, tbin):
-        """ returns ratio of time spent in active state over timebin duration, or probability , strict sense
-        """
+        """Returns ratio of time spent in active state over timebin duration, or probability , strict sense. """
         durs = self.active_state_durations_in_timebin(tbin)
         return durs.sum() / np.diff(np.asarray(tbin)).sum()
 
     def active_state_durations_in_timebin(self, tbin):
-        """ returns time spent [sec] in active state in timebin, strict sense """
+        """Returns time spent [sec] in active state in timebin, strict sense """
         from util.utils import timeset_durations_in_timebin
         return timeset_durations_in_timebin(tset=self.data['preprocessing']['AS_timeset'], tbin=tbin)
 
     def average_active_state_features_binned(self, bin_type, intens_opt=1):
-        """ computes active state features in timebins and adds data as (key, value) to mouseday data dictionary:
+        """Computes active state features in timebins and adds data as (key, value) to mouseday data dictionary:
             - Time [min]
             - Probability [-]
             - Numbers, or counts [-]
             - Rate [1/hr]
             - Duration [min]
             - active state intensities for Feed [mg/s], Drink [mg/s] and Locomotion [cm/s]
-            bin_types can be ['3cycles', '12bins', '4bins', '24bins']
+            bin_types can be ['3cycles', '12bins', '4bins', '24bins'].
         """
         tbins = get_timebins(bin_type)
         keys = ['AST', 'ASP', 'ASN', 'ASR', 'ASD', 'ASFI', 'ASDI', 'ASLI']
@@ -638,12 +638,12 @@ class MouseDay(object):
 
     # total amounts
     def locomotion_amounts_in_reference_timeset(self, tbin, loco_qty='distance', ref_tset_name='AS_timeset'):
-        """ returns movement total amounts [cm] in timebin.
+        """Returns movement total amounts [cm] in timebin.
             reference tset is a 2d array, either AS_timeset or LB_timeset.
             All movements included (at *and* out_of homebase)
             tstamps is a 1d array with t timestamps
             loco_qty is a (tstamps related) 1d array, e.g. {xy, velocity, distance}
-            way 2 used here: compute quantity first, then average (to be clarified)
+            way 2 used here: compute quantity first, then average (to be clarified).
         """
         from util.utils import intersect_timeset_with_timebin, timestamps_index_to_timebin
         from util.utils import array_positions_to_reference_array
@@ -662,8 +662,8 @@ class MouseDay(object):
         return np.array(res_arr) if len(res_arr) else np.zeros(1)
 
     def device_firing_durations_in_reference_timeset(self, ev_type, tbin, ref_tset_name='AS_timeset'):
-        """ returns device firing durations.
-            other_tset is a 2d array (timeset), e.g. {FDL}B_timeset, {FD}_timeset
+        """Returns device firing durations. 
+            Other_tset is a 2d array (timeset), e.g. {FDL}B_timeset, {FD}_timeset. 
         """
         from util.utils import intersect_timeset_with_timebin, array_positions_to_reference_array
         arr = intersect_timeset_with_timebin(tset=self.get_ingestion_timeset(ev_type), tbin=tbin)
@@ -677,7 +677,7 @@ class MouseDay(object):
         return np.array(durs)
 
     def get_ingestion_coefficient(self, ev_type):
-        """ returns feed (resp. Lick Coefficient) for a given day in [g/sec] """
+        """Returns feed (resp. Lick Coefficient) for a given day in [g/sec]. """
         ev_set, total_consumed = None, None
         if ev_type == 'F':
             ev_set = self.trim_fbd_min_f_timeset()
@@ -689,27 +689,28 @@ class MouseDay(object):
         return total_consumed / total_time if total_time else 0
 
     def trim_fbd_min_f_timeset(self):
-        """ exclude events in short (<FBD_min) bouts """
+        """ exclude events in short (<FBD_min) bouts. """
         tset = self.data['preprocessing']['F_timeset']
         idx = self.data['preprocessing']['idx_FBD_min_F_timeset']
         return tset[idx] if len(idx) else np.array([])
 
     def get_ingestion_timeset(self, ev_type):
-        """ returns ingestion timeset as (N, 2) array, N number of events, (event_start_time, event_stop_time)
-            time is seconds after midnight (HCM time) """
+        """Returns ingestion timeset as (N, 2) array, N number of events, (event_start_time, event_stop_time)
+            time is seconds after midnight (HCM time). 
+        """
         return self.data['preprocessing']['D_timeset'] if ev_type == 'D' else self.trim_fbd_min_f_timeset()
 
     def ingestion_amounts_in_reference_timeset(self, ev_type, tbin, ref_tset_name='AS_timeset'):
-        """ returns ingestion amounts relative to a timeset (N, 2) array of (start_time, end_time) .
-            timesets_name : AS_timeset, {FD}B_timeset
+        """Returns ingestion amounts relative to a timeset (N, 2) array of (start_time, end_time) .
+            timesets_name : AS_timeset, {FD}B_timeset.
         """
         coeff = self.get_ingestion_coefficient(ev_type)
         durs = self.device_firing_durations_in_reference_timeset(ev_type, tbin, ref_tset_name)
         return coeff * durs if len(durs) else np.zeros(1)
 
     def average_amounts_features_binned(self, bin_type):
-        """ loops through timebins computing total amounts for features in bin for Food [g], Drink [g],
-            Locomotion (distance) [m]
+        """Loops through timebins computing total amounts for features in bin for Food [g], Drink [g], Locomotion 
+            (distance) [m].
         """
         if bin_type in ['3cycles', '12bins', '4bins']:
             tbins = get_timebins(bin_type)
@@ -727,11 +728,11 @@ class MouseDay(object):
             self.data['features']['TL'] = mvalues  # add to dict
 
     def create_features(self, bin_type=None, intens_option=1):
-        """ creates a dataframe with features and adds total amounts, active states and bouts features as (key, value)
-            to mouseday data dictionary.
+        """Creates a DataFrame object with features and adds total amounts, active states and bouts features as 
+            (key, value) to mouseday data dictionary.
             Intensity option refers to the way intensity averages are computed:
             - way 1: amounts.sum() / durations.sum() # go with this one for now
-            - way 2: (amounts / durations).mean()
+            - way 2: (amounts / durations).mean().
         """
         import pandas as pd
         from core.keys import all_features
@@ -749,8 +750,8 @@ class MouseDay(object):
 
     # breakfast
     def create_breakfast(self, timepoint, tbin_size, num_secs):
-        """ creates a dataframe with breakfast data and adds to mouseday data dictionary.
-            tbin_size in seconds
+        """Creates a DataFrame object with breakfast data and adds to mouseday data dictionary. 
+            tbin_size in seconds.
         """
         import pandas as pd
         num_bins = num_secs / tbin_size
@@ -785,7 +786,7 @@ class MouseDay(object):
 
     # within AS structure
     def create_within_as_structure(self, num_mins=15):
-        """ returns a generator with 'within active states structure' data """
+        """Returns a generator with 'within active states structure' data. """
         keys = ['FB_timeset', 'DB_timeset', 'LB_timeset', 'AS_timeset', 'recording_start_stop_time']
         fb, db, lb, ass, rec = self.load_npy_data(keys=keys)
         bc = (Intervals(fb).union(Intervals(db)).union(Intervals(lb))).complement().intersect(Intervals(rec)).intervals
@@ -798,7 +799,7 @@ class MouseDay(object):
 
     # time budget
     def create_time_budget(self, bin_type):
-        """ creates a dataframe with breakfast data and adds to mouseday data dictionary """
+        """Creates a dataframe with breakfast data and adds to mouseday data dictionary. """
         import pandas as pd
         from util.utils import get_timebin_in_recording_time
         keys = ['FB_timeset', 'DB_timeset', 'LB_timeset', 'AS_timeset', 'IS_timeset', 'recording_start_stop_time']

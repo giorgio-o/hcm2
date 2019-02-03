@@ -1,4 +1,4 @@
-# hcm/core/fixer/backwardfix.py
+# hcm2/core/fixer/backwardfix.py
 """
 # Darren Rhea, 2012
 # Chris Hillar revision, May 2013

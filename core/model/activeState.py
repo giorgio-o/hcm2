@@ -1,10 +1,7 @@
 import numpy as np
 
-from util import utils
 from util.utils import hcm_time_to_ct_string,seconds_to_mins_and_secs_tuple
 import logging
-
-import totals
 
 logger = logging.getLogger(__name__)
 

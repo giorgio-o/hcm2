@@ -1,5 +1,5 @@
 # hcm/util/file_utils.py
-""" utilities file """
+"""Utilities file. """
 import numpy as np
 from functools import wraps
 from time import time

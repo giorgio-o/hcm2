@@ -1,5 +1,5 @@
 # hcm/util/file_utils.py
-""" file utilities """
+"""File utilities. """
 import os
 import sys
 import logging

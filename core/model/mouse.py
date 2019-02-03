@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class Mouse(object):
-    """ HCM mouse class """
+    """HCM mouse class. """
 
     def __init__(self, group=None, number=1, name=None):
         self.experiment = None or group.experiment
@@ -23,32 +23,32 @@ class Mouse(object):
 
     @property
     def label(self):
-        """ returns tuple (group_name, mouse_number) """
+        """Returns tuple (group_name, mouse_number). """
         return self.group.name, self.name
 
     @property
     def is_ignored(self):
-        """ returns True if mouse is ignored """
+        """Returns True if mouse is ignored. """
         return (self.group.name, self.name) in self.experiment.ignored_mice
 
     @property
     def label_long(self):
-        """ returns tuple (group_number, group_name, individual_number, mouse_number) """
+        """Returns tuple (group_number, group_name, individual_number, mouse_number). """
         return self.group.number, self.group.name, self.number, self.name
 
     @property
     def filename_long(self):
-        """ returns string for filename """
+        """Returns string for filename. """
         return "group{}_{}_indv{}_{}".format(*self.label_long)
 
     def all_mousedays(self, days=()):
-        """ returns generator of all Mouseday objects for selected days """
+        """Returns generator of all Mouseday objects for selected days. """
         from mouseday import MouseDay
         days = days or self.days
         return (MouseDay(mouse=self, day=day) for day in days)
 
     def mousedays(self, days=()):
-        """ returns generator of valid (not ignored) Mouseday objects for selected days """
+        """Returns generator of valid (not ignored) Mouseday objects for selected days. """
         days = days or self.days
         path = os.path.join("preprocessing", "AS_timeset")
         labels = list(self.experiment.mouseday_labels_from_binary_path(self.experiment.path_to_binary(subdir=path)))
@@ -56,8 +56,8 @@ class Mouse(object):
 
     # data preprocessing
     def process_raw_data(self, days=(), fixers=()):
-        """ raw data preprocessing, creates bouts and active states,
-            stores computed variables as (keys, values) in mouseday data dictionary
+        """Raw data preprocessing, creates bouts and active states from event raw data.
+            Stores computed variables as (keys, values) in mouseday data dictionary.
         """
         fixers = [f(self.experiment) for f in fixers]
         for md in self.all_mousedays(days):
@@ -84,26 +84,26 @@ class Mouse(object):
             md.save_npy_data()
 
     def create_position(self, days, bin_type, xbins, ybins):
-        """ creates position data """
+        """Creates position data. """
         for md in self.mousedays(days):
             logger.info("{}: {}".format(bin_type, str(md)))
             md.create_position(bin_type, xbins, ybins, binary=False)
 
     def create_features(self, days=(), bin_type="12bins"):
-        """ creates features data """
+        """Creates features data. """
         for md in self.mousedays(days):
             logger.info("{}: {}".format(bin_type, str(md)))
             md.create_features(bin_type)
 
     def create_breakfast(self, days, timepoint, tbin_size, num_secs):
-        """ creates breakfast data """
+        """Creates breakfast data. """
         days = days or self.days
         for md in self.mousedays(days):
             logger.info("{}".format(str(md)))
             md.create_breakfast(timepoint, tbin_size, num_secs)
 
     def create_within_as_structure(self, days, num_mins=15, for_mice=True):
-        """ creates within active states structure data """
+        """Creates within active states structure data. """
         from operator import itemgetter
         days = days or self.days
         all_tuples = [x for md in self.mousedays(days) for x in md.create_within_as_structure(num_mins)]
@@ -112,7 +112,7 @@ class Mouse(object):
         return [x[0] for x in sorted_tups] if for_mice else all_tuples
 
     def create_time_budget(self, days, bin_type):
-        """ creates time budget data """
+        """Creates time budget data. """
         days = days or self.days
         for md in self.mousedays(days):
             logger.info("{}".format(str(md)))

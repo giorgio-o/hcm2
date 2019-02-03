@@ -1,6 +1,8 @@
 # hcm/core/ignore.py
-""" dictionary {<exp_name>: {mousedays: list of [group_name, mouse_number, ignored_mousedays],
-                            mice: list of [group_name, ignored_mice]
+"""Dictionary containing ignored mice and mouseday lisets for the various HCM experiments.
+dictionary {<exp_name>: {mousedays: list of [group_name, mouse_number, ignored_mousedays],
+                         mice: list of [group_name, ignored_mice]}
+
 """
 
 ignored = {'WR1': dict(mousedays=[], mice=[]), 'WR2': dict(mousedays=[], mice=[]),

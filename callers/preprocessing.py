@@ -1,5 +1,13 @@
-# hcm/callers/preprocessing.py
-""" HCM experiment data preprocessing """
+# hcm2/callers/preprocessing.py
+"""G. Onnis, 2017
+revised 11.2018
+
+HCM experiment data preprocessing module.
+
+# Copyright (c) 2018. All rights reserved.
+
+"""
+
 import numpy as np
 import os
 import argparse
@@ -15,7 +23,7 @@ np.set_printoptions(linewidth=250,
 
 
 def summarize_log_file(logfilename):
-    """ summarizes errors in log file """
+    """Summarizes errors in log file. """
     from util import file_utils
     logpath = os.path.join(file_utils.repo_dir(), "hcm/logs")
     filename = os.path.join(logpath, logfilename)
@@ -31,7 +39,7 @@ def summarize_log_file(logfilename):
 
 
 def create_logger(args, days):
-    """ creates preprocessing log file"""
+    """Creates preprocessing log file. """
     import datetime
     import logging.config
 
@@ -49,7 +57,7 @@ def create_logger(args, days):
 
 
 def get_parser():
-    """ parse command line input """
+    """Parse command line input. """
     parser = argparse.ArgumentParser()
     parser.add_argument("name")
     parser.add_argument("akind")
@@ -63,28 +71,47 @@ def get_parser():
 
 @utils.timing
 def main():
-    """ main data preprocessing file.
-        # python callers/preprocessing.py <experiment_name> <analysis_kind>
-        - akind = "raw":
-            preprocess raw data
-            saves to npy files
-        - akind = "position":
-            creates position data
-            bin_type = ["7cycles", "4bins", "12bins", "24bins"],
-            (xbins, ybins) = [(2, 4), (12, 24)]
-            "7cycles": ["24H", "DC", "LC", "AS24H", "ASDC", "ASLC", "IS"]
-            saves to json files
-        - akind = "features":
-            creates features data, bin_type=["3cycles", "4bins", "12bins", "24bins"]
-            "3cycles": ["24H", "DC", "LC"]
-            saves to json files
-        - akind = "breakfast":
-            creates breakfast hypothesis data, timepoint=['onset', 'offset']
-            saves to json files
-        - akind = "time_budget":
-            creates time budget data, bin_type=["6cycles"]
-            "6cycles": ["24H", "DC", "LC", "AS24H", "ASDC", "ASLC"]
-            saves to json files
+    """Main data preprocessing file. 
+        Generates npy files from raw HCM data and saves it in: <exp_name>/preprocessing/ 
+        Generates json files from npy preprocessed data and saves it in: <exp_name>/advanced/
+
+    Parameters
+    ----------
+    name : str
+        Experiment name.
+    akind : {"raw", "position", "features", "breakfast", "time_budget"}
+        Type of analysis to be performed:
+            "raw": preprocess HCM raw data and saves a bunch of computed variables as .npy files in: 
+                binary/<exp_name>/preprocessing/
+            "position": computes occupancy times from preprocessed npy files and saves as json it in: 
+                binary/<exp+name>/advanced/
+                        
+    bin_type : {"3cycles", "6cycles", "7cycles", "4bins", "12bins", "24bins"}
+        Time binning:
+            "3cycles": 24H, DC, LC.
+            "6cycles": 24H, DC, LC, AS24H, ASDC, ASLC.
+            "7cycles": 24H, DC, LC, AS24H, ASDC, ASLC, IS.
+            "4bins": CT06-12 (last 6 hours of LC), CT12-18 (first 6 hours of DC), CT18-24 (last 6 hours of DC), 
+                    CT24-06 (first 6 hours of LC).
+            "12bins": 2-hours time bins, starting from CT06-08 to CT04-06.
+            "24bins": 1-hour time bins, starting from CT06-07 to CT05-06.
+            CT: Circadian Time.
+            24H: 24hrs, DC: Dark Cycle, LC: Light Cycle, AS24H: Active States over the 24H, ASDC: Active states, DC, 
+                ASLC: Active States, LC, IS: Inactive State.
+    xbins, ybins: int
+        Horizontal (vs. vertical) cage discretization, i.e. how many cells in the x (vs. y) direction. 
+        Typical values: (2, 4) and (12, 24).
+    htype : {"group", "mouse", "day"}
+        Hierarchical tier for analysis.
+    timepoint : {"onset", "offset"}
+        startpoint for beakfast hypothesis.
+    
+    Examples
+    --------
+    Run analysis form command line:
+    python callers/preprocessing.py HiFat1 raw
+    python callers/preprocessing.py HiFat1 position --xbins 2 --ybins 4 --bin_type 7cycles
+    python callers/preprocessing.py HiFat1 features --bin_type 12bins
     """
     # analysis parameters
     parser = get_parser()
@@ -122,111 +149,4 @@ def main():
         
         
 if __name__ == '__main__':
-    main()
-
-    # obs_period =  'acclimated'  # see keys.obs_period_to_days
-    # name = sys.argv[1]  # StrainSurvey, HiFat1, HiFat2, CORTTREAT, Stress_HCMe1r1, Stress1A, 2CFast
-    # akind = sys.argv[2]
-    # if akind == 'raw':
-    #     # run callers/preprocessing.py <exp_name> raw
-    #     E = run(name, obs_period, akind)
-    # elif akind == 'position':
-    #     # run callers/preprocessing.py <exp_name> position <bin_type> <xbins> <ybins>
-    #     bin_type = sys.argv[3]  # 7cycles, 12bins, 4bins
-    #     xbins, ybins = int(sys.argv[4]), int(sys.argv[5])  # (2, 4), (12, 24)
-    #     E = run(name, obs_period, akind, bin_type=bin_type, xbins=xbins, ybins=ybins)
-    # elif akind == 'features':
-    #     # run callers/preprocessing.py <exp_name> features <bin_type>
-    #     bin_type = sys.argv[3]  # 3cycles, 12bins, 4bins, 24bins
-    #     E = run(name, obs_period, akind, bin_type=bin_type)
-    # elif akind == 'breakfast':
-    #     # run callers/preprocessing.py <exp_name> breakfast <timepoint>
-    #     timepoint = sys.argv[3]  # onset, offset
-    #     E = run(name, obs_period, akind, timepoint=timepoint)
-    # elif akind == 'time_budget':
-    #     # run callers/preprocessing.py <exp_name> time_budget
-    #     bin_type = '6cycles'
-    #     E = run(name, obs_period, akind, bin_type)
-    # elif akind == 'alles':
-    #     # run callers/preprocessing.py <exp_name> alles
-    #     E = run(name, obs_period, akind)
-    # else:
-    #     raise ValueError("Received unknown code: {}".format(akind))
-
-    # def summarize_log_file(logfilename):
-    #     """ summarizes errors in log file """
-    #     from util import file_utils
-    #     logpath = os.path.join(file_utils.repo_dir(), 'hcm/logs')
-    #     filename = os.path.join(logpath, logfilename)
-    #     print "reading logfile:\n", filename
-    #     with open(filename) as f:
-    #         lines = [l for l in f if "group" in l or "ERROR" in l]
-    # 
-    #     outfile = os.path.join(logpath, logfilename[:-4] + '_summarized.log')
-    #     with open(outfile, 'w') as f:
-    #         for l in lines:
-    #             f.write(l)
-    #     print "wrote summarized .log file to:\n", outfile
-    # 
-    # 
-    # def create_logger(name, days, akind, bin_type=None, timepoint=None):
-    #     """ creates preprocessing log file"""
-    #     import datetime
-    #     import logging.config
-    # 
-    #     logconfigfilename = "log_preprocessing.conf"
-    #     text = bin_type or timepoint or ""
-    #     text = "_{}".format(text)
-    #     now = datetime.datetime.now()
-    #     today_now = '{}{:02d}{:02d}_h{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute)
-    #     logfilename = '{}_preprocessing_{}{}_{}.log'.format(name, akind, text, today_now)
-    #     logging.config.fileConfig(os.path.join('logs', logconfigfilename),
-    #                               defaults=dict(logfilename=os.path.join('logs', logfilename)))
-    #     log = logging.getLogger(__name__)
-    #     log.info("Experiment {}, days: {}".format(name, days))
-    #     return log, logfilename
-    # 
-    # 
-    # @utils.timing
-    # def run(name, obs_period, akind, bin_type=None, timepoint=None, xbins=None, ybins=None):
-    #     """ main HCM data preprocessing file
-    #         - raw: process HCM raw data, creates bouts and active states (npy files)
-    #         - position: creates position data for 24H, DC, LC, AS24H, ASDC, ASLC (json files)
-    #         - features: creates behavioral model features for feeding, drinking and locomotion (json files)
-    #         - breakfast: creates breakfast hypothesis data (json files)
-    #         - time budget: creates time budget data (json files)
-    #         - alles: creates npy files from raw data (bouts and active states), position and feature data
-    #     """
-    #     from core.model.experiment import Experiment
-    #     from core.keys import obs_period_to_days
-    # 
-    #     experiment = Experiment(name=name)
-    #     days = obs_period_to_days[experiment.name][obs_period]
-    #     # create logger
-    #     logger, logfilename = create_logger(name, days, akind, bin_type, timepoint)
-    # 
-    #     if akind == "raw":  # first, create raw
-    #         experiment.process_raw_data(days)
-    #         summarize_log_file(logfilename)
-    # 
-    #     elif akind == 'position':  # second, create position
-    #         experiment.create_position(days, bin_type, xbins, ybins)
-    # 
-    #     elif akind == "features":  # third, create features1
-    #         experiment.create_features(days, bin_type=bin_type)
-    # 
-    #     elif akind == "breakfast":
-    #         experiment.create_breakfast(days, timepoint=timepoint)
-    # 
-    #     elif akind == 'time_budget':
-    #         experiment.create_time_budget(days, bin_type)
-    # 
-    #     elif akind == 'alles':
-    #         experiment.process_raw_data(days)
-    #         for xbins, ybins in [(2, 4), (12, 24)]:
-    #             bin_type = '7cycles'
-    #             experiment.create_position(days, bin_type, xbins, ybins)
-    #         for bin_type in ['3cycles', '12bins']:
-    #             experiment.create_features(days, bin_type=bin_type)
-    #         summarize_log_file(logfilename)
-    #     return experiment
+#    main()¡™£

@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Cage(object):
-    """ HCM cage object"""
+    """HCM cage object. """
 
     # Define the positions of the devices
     # Maybe Evan was wrong, this is the Alan measurement
@@ -98,11 +98,12 @@ class Cage(object):
 
     @property
     def cage_boundaries(self):
+        """returns HCM cage boundary coordinates. """
         return (self.cmx_lower, self.cmx_upper), (self.cmy_lower, self.cmy_upper)
 
     def map_rectangle_to_cage_coordinates(self, rect, xbins=2, ybins=4):
-        """ converts a rectangle in xbins x ybins to corresponding rectangle in Cage coordinates
-            format is [[p1, p2], [p3, p4]] where pi = (cage_height_location, cage_length_location)
+        """Converts a rectangle in xbins x ybins to corresponding rectangle in Cage coordinates.
+            Format is [[p1, p2], [p3, p4]] where pi = (cage_height_location, cage_length_location).
             ### THIS GIVES WRONG CAGE LOCATIONS for top bottom left right
             # # # xbins ybins do NOT reflect cage geometry perfectly
         """
@@ -117,6 +118,7 @@ class Cage(object):
                 (coord_x + delta_x, coord_y - delta_y))
 
     def print_rect_cage_coordinates(self, rect):
+        """Prints HCM cage coordinates. """
         tl, tr, bl, br = self.map_rectangle_to_cage_coordinates(rect)
         print "Mouse at rect {} location in original coordinates top_left, top_right, bot_left, bot_right: ".format(
             rect)
@@ -124,8 +126,7 @@ class Cage(object):
 
     @staticmethod
     def map_ethel_obs_to_cage2x4_grid(obs_nest_3x7):
-        """ return ethel coordinates in (2,4) grid discretization
-        """
+        """Return ethel coordinates in (2,4) grid discretization. """
         a, b = obs_nest_3x7
         consistent = None
         if a >= 2 and b == 7:

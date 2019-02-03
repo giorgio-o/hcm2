@@ -1,5 +1,5 @@
 # hcm/util/file_utils.py
-""" dataframe utility file """
+"""Dataframe utility file. """
 
 import numpy as np
 import pandas as pd

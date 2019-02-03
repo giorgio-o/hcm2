@@ -1,4 +1,4 @@
-# hcm/core/model/experiment.py
+# hcm2/core/model/experiment.py
 """
 G. Onnis, 11.2017
 revised: 11.2018
@@ -8,6 +8,7 @@ HCM Experiment Class.
 Copyright (c) 2018. All rights reserved.
 
 Tecott Lab UCSF
+
 """
 import numpy as np
 import logging
@@ -25,7 +26,7 @@ logger = logging.getLogger()
 
 
 class Experiment(object):
-    """ HCM experiment class """
+    """HCM experiment class """
     hyper_params = dict(IST=20,  # inactive state threshold [min]
                         FBT=30,  # feed bout threshold [sec]
                         DBT=30,  # drink bout threshold [sec]
@@ -44,85 +45,85 @@ class Experiment(object):
         self.data = dict(position=dict(), features=dict(), events=dict(), breakfast=dict(), time_budget=dict())
 
     def __str__(self):
-        return "experiment: {}".format(self.name)
+        return "Experiment: {}".format(self.name)
 
     @property
     def groups_ordered(self):
-        """ returns list of (ordered) group names """
+        """Returns list of (ordered) group names """
         from core.keys import groups_ordered
         return groups_ordered[self.name]
 
     @property
     def groups(self):
-        """ returns group objects generator for groups (from MSI file) """
+        """Returns group objects generator for groups (from MSI file) """
         from group import Group
         return (Group(experiment=self, number=number + 1, name=name) for number, name in enumerate(self.groups_ordered))
 
     @property
     def mice(self):
-        """ returns mouse objects generator for mice (from MSI file) """
+        """Returns mouse objects generator for mice (from MSI file) """
         return (m for g in self.groups for m in g.mice)
 
     def all_mousedays(self, days=()):
-        """ returns mouseday objects generator for all mousedays (from MSI file) """
+        """Returns mouseday objects generator for all mousedays (from MSI file) """
         days = days or self.days
         return (md for group in self.groups for mouse in group.mice for md in mouse.all_mousedays(days))
 
     def mousedays(self, days=()):
-        """ returns mouseday objects generator for mousedays for which preprocessed data is available """
+        """Returns mouseday objects generator for mousedays for which preprocessed data is available """
         days = days or self.days
         path = self.path_to_binary(subdir=os.path.join("preprocessing", "AS_timeset"))
         path_labels = [l for l in self.mouseday_labels_from_binary_path(path) if l[2] in days]
         return (md for md in self.all_mousedays(days) if md.label in path_labels)
 
     def group_object(self, name):
-        """ returns a mouse given its name """
+        """Returns a mouse given its name """
         return (g for g in self.groups if g.name == name).next()
 
     def mouse_object(self, label):
-        """ returns a mouse given its name (e.g., (group_name, mouse_number)"""
+        """Returns a mouse given its name (e.g., (group_name, mouse_number)"""
         return (m for m in self.mice if m.name == label[1]).next()
 
     def mouseday_object(self, label):
-        """ returns a mouse given its name (e.g., (group_name, mouse_number, day)) """
+        """Returns a mouse given its name (e.g., (group_name, mouse_number, day)) """
         return (md for md in self.all_mousedays() if label[1] == md.mouse.name and label[2] == md.day).next()
 
     @property
     def ignored(self):
-        """ returns dictionary with ignored mice and mousedays """
+        """Returns dictionary with ignored mice and mousedays """
         from core.ignore import ignored
         return ignored[self.name]
 
     @property
     def valid_mice(self):
-        """ returns list of tuples (group_name, mouse_number) """
+        """Returns list of tuples (group_name, mouse_number) """
         return [m.label for m in self.mice if not m.is_ignored]
 
     @property
     def ignored_mice(self):
-        """ returns list of tuples (group_name, mouse_number) """
+        """Returns list of tuples (group_name, mouse_number) """
         return self.ignored["mice"]
 
     def valid_mousedays(self, days=()):
-        """ returns list of tuples (group_name, mouse_number, day) for selected days """
+        """Returns list of tuples (group_name, mouse_number, day) for selected days """
         return [md.label for md in self.all_mousedays(days) if not md.is_ignored]
 
     def ignored_mousedays(self, days=()):
-        """ returns list of tuples (group_name, mouse_number, day) for selected days """
+        """Returns list of tuples (group_name, mouse_number, day) for selected days """
         return [md.label for md in self.all_mousedays(days) if md.is_ignored]
 
     @property
     def group_mice_dict(self):
-        """ returns dictionary {group_name: list of mouse numbers} """
+        """Returns dictionary {group_name: list of mouse numbers} """
         return {name: sorted(self.msi_dict[name].keys()) for name in self.msi_dict.keys()}  # ints
 
     def groups_numbered(self, reverse=False):
-        """ returns dictionary {group_number: group_name} """
+        """Returns dictionary {group_number: group_name} """
         d = {n: v for n, v in zip(range(1, len(self.groups_ordered) + 1), self.groups_ordered)}
         return d if not reverse else dict((v, k) for k, v in d.iteritems())
 
     def summary(self, obs_period="acclimated"):
-        """ returns information summary for experiment for selected observation period (obs_period) """
+        """Returns information summary for experiment for selected observation period (obs_period) """
         from core.keys import obs_period_to_days
         days = obs_period_to_days[self.name][obs_period]
         print "Experiment {} Summary".format(self.name)
@@ -145,20 +146,19 @@ class Experiment(object):
             print "ignored mousedays: {}, {}".format(len(ignored), ignored)
 
     def all_ignored_mousedays(self, days=None):
-        """ returns list of tuples (group_name, mouse_number, day) for selected days """
+        """Returns list of tuples (group_name, mouse_number, day) for selected days """
         days = days or self.days
         mds = [md for md in self.ignored["mousedays"] if md[2] in days]
         return mds + [(g, m, d) for g, m in self.ignored["mice"] for d in days]
 
     def group_number(self, name):
-        """ returns group_number given group_name """
+        """Returns group_number given group_name """
         from core.keys import groups_ordered
         return groups_ordered[self.name].index(name) + 1
 
     # data preprocessing methods
     def path_to_binary(self, subdir=''):
-        """ returns path for npy files, or, the files generated by preprocessing raw data, in
-            /binary/<exp_name>/<subdir>/
+        """Returns path for npy files (files generated by preprocessing raw data) in: /binary/<exp_name>/<subdir>/
         """
         path = os.path.join(repo_dir(), 'binary', self.name, subdir)
         if not os.path.isdir(path):
@@ -166,7 +166,7 @@ class Experiment(object):
         return path
 
     def get_preprocessing_data_keys(self, subdir, EXCLUDE=True):
-        """ returns list of variables names found in /binary/<exp_name>/<subdir> """
+        """Returns list of variables names found in /binary/<exp_name>/<subdir> """
         path = self.path_to_binary(subdir)
         keys = os.walk(path).next()[1]
         if EXCLUDE:
@@ -177,9 +177,7 @@ class Experiment(object):
 
     @timing
     def process_raw_data(self, days=(), fixers=()):
-        """ raw data preprocessing. generates npy files saved in /binary/<exp_name>/preprocessing/
-            log file saved to /hcm/logs/
-        """
+        """Raw data preprocessing. Creates .npy files """
         import time
         cstart = time.clock()
         fixers = get_fixers() or fixers
@@ -197,7 +195,7 @@ class Experiment(object):
 
     @timing
     def create_position(self, days=(), bin_type=None, xbins=2, ybins=4):
-        """ creates json position data files saved in /binary/<exp_name>/advanced/ """
+        """Creates json position data files """
         logger.info(str(self))
         logger.info("Creating position density ..")
         for group in self.groups:
@@ -208,7 +206,7 @@ class Experiment(object):
 
     @timing
     def create_features(self, days=(), bin_type='12bins'):
-        """ creates json feature data files saved in /binary/<exp_name>/advanced/
+        """Creates json feature data files, including:
             - Total amounts: Food, Drink, Movement
             - Active states: Probability, Numbers, Durations,
             - Active states' intensities: Food, Drink, Movement
@@ -224,7 +222,7 @@ class Experiment(object):
 
     @timing
     def create_breakfast(self, days=(), timepoint='onset', tbin_size=30, num_secs=900):
-        """ creates json breakfast data files saved in /binary/<exp_name>/advanced/ """
+        """Creates json breakfast data files """
         logger.info(str(self))
         logger.info("Creating breakfast {} data (tbinsize={}s) ..".format(timepoint, tbin_size))
         for group in self.groups:
@@ -235,7 +233,7 @@ class Experiment(object):
 
     @timing
     def create_within_as_structure(self, days):
-        """ creates within active states structure data """
+        """Creates within active states structure data """
         logger.info(str(self))
         logger.info("Creating within-active state structure data ..")
         for group in self.groups:
@@ -244,7 +242,7 @@ class Experiment(object):
 
     @timing
     def create_time_budget(self, days, bin_type):
-        """ creates json time budget data files saved in /binary/<exp_name>/advanced/ """
+        """Creates json time budget data files """
         logger.info(str(self))
         logger.info("Creating time budget data ..")
         for group in self.groups:
@@ -256,13 +254,12 @@ class Experiment(object):
     # load/ save data methods
     @staticmethod
     def mouseday_labels_from_binary_path(path, ext='npy'):
-        """ returns a generator over mouseday labels (group_name, mouse_number, day) given filenames in path """
+        """Returns a generator over mouseday labels (group_name, mouse_number, day) given filenames in path """
         return (mouseday_label_from_filename(f, ext) for f in find_files(path, ext))
         # return sorted([mouseday_label_from_filename(f, ext) for f in find_files(path, ext)], key=itemgetter(1,2,3))
 
     def mouseday_labels_tuples(self, days=(), subakind=None, sub_index1=None, sub_index2=None, short=True):
-        """ returns list of (group, mouse, day, sub_index) used to build multi-index pandas dataframes
-        """
+        """Returns list of (group, mouse, day, sub_index) used to build multi-index pandas dataframes """
         from core.keys import all_features, features_short, cycle_timebins, act_to_actlabel
         days = days or self.days
         ev_types = ['F', 'D']
@@ -288,14 +285,14 @@ class Experiment(object):
         return res
 
     def path_to_results(self, subdir=''):
-        """ returns path for analysis results files in /results/<exp_name>/<subdir>/ """
+        """Returns path for analysis results and visualizations: /results/<exp_name>/<subdir>/ """
         path = os.path.join(repo_dir(), 'results', self.name, subdir)
         if not os.path.isdir(path):
             os.makedirs(path)
         return path
 
     def save_json_data(self, akind, fname):
-        """ saves experiment data to json file in /binary/<exp_name>/advanced/"""
+        """Saves experiment data to json file in: /binary/<exp_name>/advanced/ """
         import pandas as pd
         import json
         df = pd.concat([v for v in self.data[akind].values()])
@@ -307,7 +304,9 @@ class Experiment(object):
         print "{} data saved to:\n{}".format(akind, filename)
 
     def load_homebase_data(self, days):
-        """ load homebase data from /binary/<exp_name>/preprocessing/ """
+        """Loads homebase data from: /binary/<exp_name>/preprocessing/ 
+            Returns DataFrame object
+        """
         import pandas as pd
         from core.keys import homebase_1dto_string as to_string
         print "loading homebase data.."
@@ -336,7 +335,9 @@ class Experiment(object):
     @timing
     def load_json_data(self, days, akind, fname, subakind=None, sub_index1=None, sub_index2=None, occupancy=None,
                        hb=None, PROB=None, ignore=False):
-        """ load json data from /binary/<exp_name>/advanced/"""
+        """Load json data from: /binary/<exp_name>/advanced/. 
+            Returns DataFrame object
+        """
         import pandas as pd
         ignored_mds = self.all_ignored_mousedays(days)
         ordered_tups = self.mouseday_labels_tuples(days, subakind, sub_index1, sub_index2)
@@ -369,7 +370,7 @@ class Experiment(object):
 
 
 def get_fixers():
-    """ returns list of fixer classes: backwardfix and/or devicefix"""
+    """Returns list of fixer classes: backwardfix/devicefix"""
     fixers = list()
     for fixname in dir(fixer):
         fix = getattr(fixer, fixname)

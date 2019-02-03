@@ -1,5 +1,5 @@
 # hcm/core/keys.py
-""" various dictionaries:
+"""Various dictionaries:
     - groups ordered
     - Strain Survey experiment full group names
     - observation period to days numbers and viceversa
@@ -13,6 +13,7 @@
     - error codes map
     - homebase position map
     - errors to be removed from bouts
+    
 """
 
 from collections import OrderedDict
