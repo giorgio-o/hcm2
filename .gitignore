@@ -12,5 +12,8 @@ core/model/.DS_Store
 callers/.DS_Store
 core/model/.DS_Store
 core/util/.DS_Store
-Callers/quality.py
+callers/quality.py
+tmp/
 .spyproject
+.idea
+

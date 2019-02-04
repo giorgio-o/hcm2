@@ -13,7 +13,7 @@ import os
 import argparse
 
 from core.model.experiment import Experiment
-from util import utils
+from util import utils, file_utils
 from core.keys import obs_period_to_days
 
 np.set_printoptions(linewidth=250,
@@ -25,7 +25,7 @@ np.set_printoptions(linewidth=250,
 def summarize_log_file(logfilename):
     """Summarizes errors in log file. """
     from util import file_utils
-    logpath = os.path.join(file_utils.repo_dir(), "hcm/logs")
+    logpath = os.path.join(file_utils.hcm_dir(), "logs")
     filename = os.path.join(logpath, logfilename)
     print "reading logfile:\n", filename
     with open(filename) as f:
@@ -38,19 +38,20 @@ def summarize_log_file(logfilename):
     print "wrote summarized .log file to:\n", outfile
 
 
-def create_logger(args, days):
+def create_logger(args, days, logconfigfilename, exp_name):
     """Creates preprocessing log file. """
     import datetime
     import logging.config
-
-    logconfigfilename = "log_preprocessing.conf"
+    log_dir = os.path.join(file_utils.datadir(exp_name), "logs")
+    if not os.path.isdir(log_dir):
+        os.makedirs(log_dir)
     text = args.bin_type or args.timepoint or ""
-    text = "_{}".format(text)
     now = datetime.datetime.now()
     today_now = "{}{:02d}{:02d}_h{:02d}{:02d}".format(now.year, now.month, now.day, now.hour, now.minute)
     logfilename = "{}_preprocessing_{}{}_{}.log".format(args.name, args.akind, text, today_now)
-    logging.config.fileConfig(os.path.join("logs", logconfigfilename),
-                              defaults=dict(logfilename=os.path.join("logs", logfilename)))
+    logfilename = os.path.join(log_dir, logfilename)
+    logconfigfilename = os.path.join(file_utils.repo_dir(), logconfigfilename)
+    logging.config.fileConfig(logconfigfilename, defaults=dict(logfilename=logfilename))
     log = logging.getLogger(__name__)
     log.info("Experiment {}, days: {}".format(args.name, days))
     return log, logfilename
@@ -121,7 +122,8 @@ def main():
     experiment = Experiment(name=name)
     days = obs_period_to_days[experiment.name][obs_period]
     # create logger
-    logger, logfilename = create_logger(args, days)
+    logconfigfilename = "log_preprocessing.conf"
+    logger, logfilename = create_logger(args, days, logconfigfilename, experiment.name)
 
     if akind == "raw":
         experiment.process_raw_data(days)
@@ -149,4 +151,4 @@ def main():
         
         
 if __name__ == '__main__':
-#    main()¡™£
+    main()

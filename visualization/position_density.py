@@ -1,4 +1,5 @@
 # hcm/visualization/viz/position_density.py
+"""Module for drawing position density plots with occupancy times. """
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -75,7 +76,7 @@ def load_data(experiment, days, bin_type, xbins, ybins, occupancy, hb, ignore):
 
 
 def position_density(experiment, obs_period, htype='group', bin_type='7cycles', xbins=2, ybins=4, ignore=False):
-    """ plot position density """
+    """Draws position density plots. """
     days = obs_period_to_days[experiment.name][obs_period]
     timebins = cycle_timebins[bin_type]
     res_subdir = os.path.join('position_density', htype)

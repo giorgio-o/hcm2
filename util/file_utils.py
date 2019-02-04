@@ -19,7 +19,8 @@ def progress(count, total, status=''):
     percents = round(100.0 * count / float(total), 1)
     bar = '=' * filled_len + '-' * (bar_len - filled_len)
     sys.stdout.write('[{}] {}{} ...{}\r'.format(bar, percents, '%', status))
-    sys.stdout.flush()  # As suggested by Rom Ruben (see: http://stackoverflow.com/questions/3173320/text-progress  #  #  -bar-in-the-console/27871113#comment50529068_27871113)
+    sys.stdout.flush()  # As suggested by Rom Ruben (see: http://stackoverflow.com/questions/3173320/text-progress
+    #  #  -bar-in-the-console/27871113#comment50529068_27871113)
 
 
 def dataroot():
@@ -29,32 +30,37 @@ def dataroot():
 def datadir(exp_name):  # day=None):
     """ TODO: Move this to the data field. """
     daydir = ""
-    if exp_name in (
-    '2cD1A2aCRE', '2cD1A2aCRE2', '2CFast', '1ASTRESS', 'Stress_HCMe1r1', 'CORTTREAT', 'HiFat2', 'HiFat1'):
+    other_exp = ["2cD1A2aCRE", "2cD1A2aCRE2", "2CFast", "1ASTRESS", "Stress_HCMe1r1", "CORTTREAT", "HiFat2", "HiFat1"]
+    if exp_name in other_exp:
         datadir_parent = ""
-        data_dir = exp_name  # if day is not None: daydir = "D%d" % (day + 1)
+        data_dir = exp_name
+    # if day is not None: daydir = "D%d" % (day + 1)
     # elif exp_name.startswith("SS_Data_051905_FV"):
     #     datadir, expround = self.name.split(":")
     #     datadir_parent = "EventFiles/EventFiles_SSe1r%s" % expround
     #     date = (self.start + datetime.timedelta(days=day)).strftime("%m%d%Y")
     #     daydir = "%se1r%sd%s" % (date, expround, day + 1)
-    elif exp_name == 'StrainSurvey':
+    elif exp_name == "StrainSurvey":
         datadir_parent = ""
         data_dir = "SS_Data_051905_FV"
-    elif exp_name.startswith('WR'):
-        datadir_parent = 'WR'
+    elif exp_name.startswith("WR"):
+        datadir_parent = "WR"
         data_dir = exp_name
     else:
         raise ValueError("Unknown experiment: {}".format(exp_name))
     return os.path.join(dataroot(), "Experiments", datadir_parent, data_dir, daydir)
 
 
-def repo_dir():
+def hcm_dir():
     datadir_parent, data_dir = None, None
-    if os.uname()[1] == 'gos-MacBook-Pro.local':
-        datadir_parent = "/Users/go/"
-        data_dir = "PycharmProjects/hcm2/"
+    if os.uname()[1] == "giorgios-MacBook-Pro.local":
+        datadir_parent = "/Users/go"
+        data_dir = "Projects/HCM/"
     return os.path.join(datadir_parent, data_dir)
+
+
+def repo_dir():
+    return os.path.join(hcm_dir(), "hcm2")
 
 
 def find_files(path, ext='npy'):
@@ -63,7 +69,7 @@ def find_files(path, ext='npy'):
             f.endswith('.{}'.format(ext)))
 
 
-def mouseday_label_from_filename(fname, ext='npy'):
+def mouseday_label_from_filename(fname, ext="npy"):
     stripped = fname.strip('.{}'.format(ext)).split('/')
     exp_name, akind, qty, md_label = [stripped[x] for x in [6, 7, -2, -1]]
     one, group, two, mouse, day = md_label.split('_')

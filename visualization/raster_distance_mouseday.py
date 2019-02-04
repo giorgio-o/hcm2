@@ -1,4 +1,5 @@
 # hcm/visualization/viz/raster_distance_mouseday.py
+"""Module for drawing raster plots for single mousedays. """
 import numpy as np
 import matplotlib.pylab as plt
 import matplotlib.patches as patches
@@ -27,7 +28,7 @@ load_keys = ['IS_timeset', 'AS_timeset', 'LB_timeset', 't', 'x', 'y', 'idx_times
 
 
 def align_yaxis(ax1, v1, ax2, v2):
-    """adjust ax2 ylimit so that v2 in ax2 is aligned to v1 in ax1"""
+    """Adjust ax2 ylimit so that v2 in ax2 is aligned to v1 in ax1. """
     _, y1 = ax1.transData.transform((0, v1))
     _, y2 = ax2.transData.transform((0, v2))
     inv = ax2.transData.inverted()
@@ -83,7 +84,6 @@ def get_tstep(tstart, tend):
 
 
 def show_durations(ax, tset, offset, key, color):
-    """ """
     for c, x in enumerate(tset):
         xpos = x[0] + (x[1] - x[0]) / 2.
         dt = int((x[1] - x[0]) * 3600)
@@ -144,12 +144,11 @@ def plot_active_state_zoom_in(md, as_num, vel=False):
 
 
 def vel_index(as_tset):
-    """ False for active states longer than 10mins """
+    """Returns False for active states longer than 10mins """
     return False if np.diff(as_tset).T[0] / 60 > 10 else True
 
 
 def draw_sctive_state_durations(ax, md_data):
-    """ """
     key = 'AS_timeset'
     tset = md_data[key] / 3600 - 7
     offset, height, color = [tset_keys[key][x] for x in subkeys]
@@ -220,7 +219,7 @@ def set_layout(ax):
 
 
 def draw_timesets(ax, md_data):
-    # timesets
+    """ Draw raster element for timesets. """
     cnt = 0
     for key, val in tset_keys.iteritems():
         tset = md_data[key] / 3600 - 7
@@ -233,6 +232,7 @@ def draw_timesets(ax, md_data):
 
 
 def draw_distance_and_loco_events(ax, md_data, lw):
+    """ Draw raster element for events. """
     t_out, t_hb, d_hb, d_out = distance_from_origin_at_lickometer(md_data)
     lkeys = ['timestamps_out_hb', 'timestamps_at_hb']
     lcolors = [tstamp_keys[x]['color'] for x in lkeys]
@@ -248,14 +248,13 @@ def draw_distance_and_loco_events(ax, md_data, lw):
 
 
 def plot_md(ax, md_data, lw):
-    # distance, loco events
+    """Draws elements for a single mouseday and sets plot the layout. """
     draw_distance_and_loco_events(ax, md_data, lw)
     draw_timesets(ax, md_data)
     set_layout(ax)
 
 
 def plot_entire_day(md):
-    # print "plotting entire day .."
     md.load_npy_data(keys=load_keys)
     md_data = md.data['preprocessing']
     fig, ax = plt.subplots(figsize=(10, 3))
@@ -272,6 +271,7 @@ def plot_entire_day(md):
 
 
 def plot_all_mds(experiment, obs_period):
+    """Plots all rasters for mousedays. """
     from core.keys import obs_period_to_days
     days = obs_period_to_days[experiment.name][obs_period] or experiment.days
     subdir = 'rasters/mousedays'
@@ -329,7 +329,7 @@ def add_raw_table(fig, df, mouse_name, day):
 
 def draw_mouseday(experiment, df=None, mouse_name=None, day=None, subtype=0, as_num=None, tstart=12, dt=1, tstep=0.1,
                   res_subdir='rasters', f_suffix=None, raw_table=False):
-
+    """Draws raster ploit for a single mouseday. """ 
     md = experiment.mouseday_object(mouse=mouse_name, day=day)
     md.load_npy_data(keys=load_keys)
 

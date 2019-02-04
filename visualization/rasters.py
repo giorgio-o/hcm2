@@ -1,4 +1,5 @@
 # hcm/visualization/viz/rasters.py
+""" Module for drawing mice raster plots. """
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
@@ -39,6 +40,7 @@ def set_layout(ax, num_days, labelsize=6, height=4):
 
 
 def draw_timesets(ax, md, y_offset, AS_only=False):
+    """ Draw raster element for timesets. """
     cnt = 0
     kvs = [(k, v) for k, v in tset_keys.iteritems()]
     kvs2 = [(k, v) for k, v in tset_keys.iteritems() if k in ['AS_timeset', 'IS_timeset']]
@@ -66,7 +68,7 @@ def figsubplots(num_items):
 
 
 def group_rasters(experiment, obs_period=(), write_days=True, as_only=False):
-    """ plots a raster for all individuals in a group """
+    """Draws individual rasters in a panel for all individuals in a group """
     days = obs_period_to_days[experiment.name][obs_period]
     num_days = len(days)
     suffix = obs_period.replace('-', '_').replace(' ', '_')
@@ -109,7 +111,7 @@ def group_rasters(experiment, obs_period=(), write_days=True, as_only=False):
 
 
 def mouse_raster(experiment, obs_period=(), mouse_label=None, write_days=True, as_only=False):
-    """ plots a raster for one individuals """
+    """Draws a raster plot for one individual. """
     days = obs_period_to_days[experiment.name][obs_period]
     num_days = len(days)
     suffix = obs_period.replace('-', '_').replace(' ', '_')
@@ -136,6 +138,7 @@ def mouse_raster(experiment, obs_period=(), mouse_label=None, write_days=True, a
 
 
 def all_mice_rasters(experiment, obs_period=(), write_days=True, as_only=False):
+    """Draws individual rasters for all mice. """
     for g in experiment.groups:
         for m in g.mice:
             mouse_raster(experiment, obs_period, mouse_label=m.label, write_days=write_days, as_only=as_only)

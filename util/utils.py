@@ -5,8 +5,8 @@ from functools import wraps
 from time import time
 
 from core.keys import AS_code_lookup, all_feature_keys, act_to_actlabel
-from util.intervals import Intervals
-from util.cage import Cage
+from intervals import Intervals
+from cage import Cage
 
 
 # general
