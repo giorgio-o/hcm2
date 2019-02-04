@@ -755,6 +755,7 @@ class MouseDay(object):
         """
         import pandas as pd
         num_bins = num_secs / tbin_size
+        as_tstart, as_tend = None, None
         dfs = list()
         for ev_type in ['F', 'D']:
             evset, ass_set = self.load_npy_data(keys=['{}B_timeset'.format(ev_type), 'AS_timeset'])  # use bout data

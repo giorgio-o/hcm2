@@ -74,7 +74,7 @@ def get_parser():
 def main():
     """Main data preprocessing file. 
         Generates npy files from raw HCM data and saves it in: <exp_name>/preprocessing/ 
-        Generates json files from npy preprocessed data and saves it in: <exp_name>/advanced/
+        Generates json files from npy preprocessed data and saves it in: <exp_name>/json_files/
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def main():
             "raw": preprocess HCM raw data and saves a bunch of computed variables as .npy files in: 
                 binary/<exp_name>/preprocessing/
             "position": computes occupancy times from preprocessed npy files and saves as json it in: 
-                binary/<exp+name>/advanced/
+                binary/<exp+name>/json_files/
                         
     bin_type : {"3cycles", "6cycles", "7cycles", "4bins", "12bins", "24bins"}
         Time binning:

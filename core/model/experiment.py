@@ -165,11 +165,11 @@ class Experiment(object):
             os.makedirs(path)
         return path
 
-    def get_preprocessing_data_keys(self, subdir, EXCLUDE=True):
+    def get_preprocessing_data_keys(self, subdir, exclude=True):
         """Returns list of variables names found in /binary/<exp_name>/<subdir> """
         path = self.path_to_binary(subdir)
         keys = os.walk(path).next()[1]
-        if EXCLUDE:
+        if exclude:
             exclude = ["uncorrected_t", "uncorrected_x", "uncorrected_y", "delta_t", "F_timeset_position_errors",
                        "D_timeset_position_errors"]
             keys = [a for a in keys if a not in exclude]
@@ -189,7 +189,7 @@ class Experiment(object):
         logger.info("Pre-processing raw data took {} minutes".format((time.clock() - cstart) / 60))
         logger.info("Created active states and feeding, drinking and locomotion bouts")
         logger.info("Created binary data:")
-        variables = self.get_preprocessing_data_keys(subdir="preprocessing", EXCLUDE=False)
+        variables = self.get_preprocessing_data_keys(subdir="preprocessing", exclude=False)
         for var in variables:
             logger.info(" -{}".format(var))
 
@@ -286,18 +286,18 @@ class Experiment(object):
 
     def path_to_results(self, subdir=''):
         """Returns path for analysis results and visualizations: /results/<exp_name>/<subdir>/ """
-        path = os.path.join(datadir(), 'results', self.name, subdir)
+        path = os.path.join(datadir(self.name), 'results', self.name, subdir)
         if not os.path.isdir(path):
             os.makedirs(path)
         return path
 
     def save_json_data(self, akind, fname):
-        """Saves experiment data to json file in: /binary/<exp_name>/advanced/ """
+        """Saves experiment data to json file in: /binary/<exp_name>/json_files/ """
         import pandas as pd
         import json
         df = pd.concat([v for v in self.data[akind].values()])
         # stop
-        path = self.path_to_binary(subdir="advanced")
+        path = self.path_to_binary(subdir="json_files")
         filename = os.path.join(path, fname)
         with open(filename, 'w') as fp:
             json.dump(df.to_json(orient='split'), fp)  # , indent=4, sort_keys=True)
@@ -334,15 +334,15 @@ class Experiment(object):
 
     @timing
     def load_json_data(self, days, akind, fname, subakind=None, sub_index1=None, sub_index2=None, occupancy=None,
-                       hb=None, PROB=None, ignore=False):
-        """Load json data from: /binary/<exp_name>/advanced/. 
+                       hb=None, prob=None, ignore=False):
+        """Load json data from: /binary/<exp_name>/json_files/.
             Returns DataFrame object
         """
         import pandas as pd
         ignored_mds = self.all_ignored_mousedays(days)
         ordered_tups = self.mouseday_labels_tuples(days, subakind, sub_index1, sub_index2)
         # load
-        path = self.path_to_binary(subdir='advanced')
+        path = self.path_to_binary(subdir='json_files')
         filename = os.path.join(path, fname)
         print "loading {} data from:\n{}\ndays: {}".format(akind, filename, days)
         with open(filename, 'r') as fp:
@@ -362,7 +362,7 @@ class Experiment(object):
                 df_hb = self.load_homebase_data(days)
                 df = merge_position_homebase_dataframes(df, df_hb)
 
-        elif akind == 'breakfast' and PROB:
+        elif akind == 'breakfast' and prob:
             # compute probability. takes a bit of time
             df = df.groupby(['group', 'mouse', 'day', 'event']).agg(lambda x: x.sum() / float(len(x)))
             df = df.reindex(self.mouseday_labels_tuples(days, sub_index1='event'))
@@ -378,20 +378,3 @@ def get_fixers():
             fixers.append(fix)
 
     return fixers
-
-
-# # kind of old
-# def day_act_to_actlabel(self, day):
-#     from core.keys import obs_period_to_days
-#     return (k for k, vals in obs_period_to_days[self.name].iteritems() if day in vals and k != 'acclimated').next()
-#
-# @property
-# def mousedays_bout_event_errors_list(self):
-#     from core.keys import md_bout_events_remove_errors_dict
-#     md_list = md_bout_events_remove_errors_dict[self.name]
-#     return list(set([v for val in md_list.values() for v in val]))
-#
-# def mice_bout_event_errors_list(self, behav):
-#     from core.keys import md_bout_events_remove_errors_dict, act_to_actlabel
-#     mice_list = md_bout_events_remove_errors_dict[self.name][act_to_actlabel[behav]]
-#     return [(s[0], s[1]) for s in mice_list] if len(mice_list) else list()

@@ -52,11 +52,11 @@ def datadir(exp_name):  # day=None):
 
 
 def hcm_dir():
-    datadir_parent, data_dir = None, None
+    dir_parent, sub_dir = None, None
     if os.uname()[1] == "giorgios-MacBook-Pro.local":
-        datadir_parent = "/Users/go"
-        data_dir = "Projects/HCM/"
-    return os.path.join(datadir_parent, data_dir)
+        dir_parent = "/Users/go"
+        sub_dir = "Projects/HomeCageMonitoring/"
+    return os.path.join(dir_parent, sub_dir)
 
 
 def repo_dir():

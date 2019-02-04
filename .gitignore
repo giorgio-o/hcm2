@@ -4,7 +4,7 @@ core/helpers/.DS_Store
 core/helpers/*.pyc
 core/helpers/qc/*.*
 core/model/*.pyc
-core/util/*.pyc
+util/*.pyc
 .DS_Store
 core/.DS_Store
 core/fixer/.DS_Store
