@@ -25,7 +25,8 @@ def facets_groups_day_breakdown(experiment, obs_period, bin_type, err_type, igno
     # layout
     set_as_layout(g, bin_type)
     set_as_legend(g, palette, hue='group')
-    title = "{}\nactive state features, {}\ngroup averages $\pm$ {}\n{} days breakdown:\n{}"\.format(str(experiment), bins_label, err_type, days_label, days)
+    title = "{}\nactive state features, {}\ngroup averages $\pm$ {}\n{} days breakdown:\n{}"\
+        .format(str(experiment), bins_label, err_type, days_label, days)
     add_figtitle(g.fig, title, y=1.1, xpad=-0.05, ypad=-0.02)
     plt.subplots_adjust(wspace=0.2)  # necessary, or custom legend will screw the layout up
     # save

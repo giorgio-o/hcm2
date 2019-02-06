@@ -90,14 +90,14 @@ def facets_groups_comparison_hue_day(experiment, obs_period, htype, timepoint, e
         set_layout(g, xvar, yvar, palettes, hue=hue)
         set_legends(g, palettes, hue=hue)
         # title
-        title = "{}\nprobability of event from AS {}\ngroup averages$\pm${}\ndays comparison:\n{}" \
-            .format(str(experiment), timepoint, err_type, days)
+        title = "{}\nprobability of event from AS {}\ngroup averages$\pm${}\ndays comparison:\n{}".format(
+            str(experiment), timepoint, err_type, days)
         add_figtitle(g.fig, title, y=1.05, ypad=-0.05)
         plt.subplots_adjust(wspace=0.3)
         # save
         res_subdir = experiment.path_to_results(subdir=os.path.join('breakfast'))
-        fname = "{}_breakfast_{}_tbinsize{}s_groups_{}_days_comparison_hue_day" \
-            .format(experiment.name, timepoint, tbin_size, err_type)
+        fname = "{}_breakfast_{}_tbinsize{}s_groups_{}_days_comparison_hue_day".format(
+            experiment.name, timepoint, tbin_size, err_type)
         save_figure(experiment, g.fig, res_subdir, fname)
 
 
@@ -133,12 +133,12 @@ def facets_groups_comparison_hue_group(experiment, obs_period, htype, timepoint,
         set_layout(g, xvar, yvar, palettes, hue)
         set_legends(g, palettes, hue)
         # title
-        title = "{}\nprobability of event from AS {}\ngroup averages$\pm${}\ndays comparison:\n{}" \
-            .format(str(experiment), timepoint, err_type, days)
+        title = "{}\nprobability of event from AS {}\ngroup averages$\pm${}\ndays comparison:\n{}".format(
+            str(experiment), timepoint, err_type, days)
         add_figtitle(g.fig, title, y=1.05, ypad=-0.05)
         plt.subplots_adjust(wspace=0.3)
         # save
         res_subdir = experiment.path_to_results(subdir=os.path.join('breakfast'))
-        fname = "{}_breakfast_{}_tbinsize{}s_groups_{}_days_comparison_hue_group" \
-            .format(experiment.name, timepoint, tbin_size, err_type)
+        fname = "{}_breakfast_{}_tbinsize{}s_groups_{}_days_comparison_hue_group".format(
+            experiment.name, timepoint, tbin_size, err_type)
         save_figure(experiment, g.fig, res_subdir, fname)

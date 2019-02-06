@@ -33,13 +33,13 @@ def facets_groups_comparison_hue_day(experiment, obs_period, bin_type, err_type,
         set_as_layout(g, bin_type, lw=1)
         set_as_legend(g, palette, hue)
         # title
-        title = "{}\nactive state features, {}\ngroup averages $\pm$ {}\ndays comparison:\n{}" \
-            .format(str(experiment), bins_label, err_type, days)
+        title = "{}\nactive state features, {}\ngroup averages $\pm$ {}\ndays comparison:\n{}".format(
+            str(experiment), bins_label, err_type, days)
         add_figtitle(g.fig, title, y=1.1, xpad=-0.05, ypad=-0.02)
         plt.subplots_adjust(wspace=0.2)  # necessary, or custom legend will screw the layout up
         # save
-        fname = "{}_active_state_features_vs_CT_{}_grp_avg_{}_days_comparison" \
-            .format(experiment.name, bin_type, err_type)
+        fname = "{}_active_state_features_vs_CT_{}_grp_avg_{}_days_comparison".format(
+            experiment.name, bin_type, err_type)
         save_figure(experiment, g.fig, res_subdir, fname)
 
         # load FDL data
@@ -58,13 +58,13 @@ def facets_groups_comparison_hue_day(experiment, obs_period, bin_type, err_type,
             set_as_layout(g, bin_type, lw=1)
             set_as_legend(g, palette, hue)
 
-            title = "{}\n{} features, {}\ngroup averages $\pm$ {}\ndays comparison:\n{}" \
-                .format(str(experiment), ftype, bins_label, err_type, days)
+            title = "{}\n{} features, {}\ngroup averages $\pm$ {}\ndays comparison:\n{}".format(
+                str(experiment), ftype, bins_label, err_type, days)
             add_figtitle(g.fig, title, y=1.1, xpad=-0.05, ypad=-0.02)
             plt.subplots_adjust(wspace=0.2)  # necessary, or custom legend will screw the layout up
             # save
-            fname = "{}_{}_features_vs_CT_{}_grp_avg_{}_days_comparison_hue_day" \
-                .format(experiment.name, ftype, bin_type, err_type)
+            fname = "{}_{}_features_vs_CT_{}_grp_avg_{}_days_comparison_hue_day".format(
+                experiment.name, ftype, bin_type, err_type)
             save_figure(experiment, g.fig, res_subdir, fname)
 
 
@@ -93,13 +93,13 @@ def facets_groups_comparison_hue_group(experiment, obs_period, bin_type, err_typ
     set_as_layout(g, bin_type, lw=1)
     set_as_legend(g, palette, hue)
     # title
-    title = "{}\nactive state features, {}\ngroup averages $\pm$ {}\ndays comparison:\n{}" \
-        .format(str(experiment), bin_type, err_type, days)
+    title = "{}\nactive state features, {}\ngroup averages $\pm$ {}\ndays comparison:\n{}".format(
+        str(experiment), bin_type, err_type, days)
     add_figtitle(g.fig, title, y=1.1, xpad=-0.05, ypad=-0.02)
     plt.subplots_adjust(wspace=0.2)  # necessary, or custom legend will screw the layout up
     # save
-    fname = "{}_active_state_features_vs_CT_{}_grp_avg_{}_days_comparison" \
-        .format(experiment.name, bin_type, err_type)
+    fname = "{}_active_state_features_vs_CT_{}_grp_avg_{}_days_comparison".format(
+        experiment.name, bin_type, err_type)
     save_figure(experiment, g.fig, res_subdir, fname)
 
     # load FDL data
@@ -119,11 +119,11 @@ def facets_groups_comparison_hue_group(experiment, obs_period, bin_type, err_typ
         set_as_layout(g, bin_type, lw=1)
         set_as_legend(g, palette, hue)
 
-        title = "{}\n{} features, {}\ngroup averages $\pm$ {}\ndays comparison:\n{}" \
-            .format(str(experiment), ftype, bins_label, err_type, days)
+        title = "{}\n{} features, {}\ngroup averages $\pm$ {}\ndays comparison:\n{}".format(
+            str(experiment), ftype, bins_label, err_type, days)
         add_figtitle(g.fig, title, y=1.1, xpad=-0.05, ypad=-0.02)
         plt.subplots_adjust(wspace=0.2)  # necessary, or custom legend will screw the layout up
         # save
-        fname = "{}_{}_features_vs_CT_{}_grp_avg_{}_days_comparison_hue_group" \
-            .format(experiment.name, ftype, bin_type, err_type)
+        fname = "{}_{}_features_vs_CT_{}_grp_avg_{}_days_comparison_hue_group".format(
+            experiment.name, ftype, bin_type, err_type)
         save_figure(experiment, g.fig, res_subdir, fname)

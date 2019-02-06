@@ -75,7 +75,39 @@ def load_data(experiment, days, bin_type, xbins, ybins, occupancy, hb, ignore):
     return df
 
 
-def position_density(experiment, obs_period, htype='group', bin_type='7cycles', xbins=2, ybins=4, ignore=False):
+def write_to_csv(experiment, obs_period, bin_type, xbins, ybins, ignore):
+    res_subdir = os.path.join('position_density', 'csv_files')
+    days = obs_period_to_days[experiment.name][obs_period]
+    days_label = obs_period.replace('-', '_').replace(' ', '_')
+    text2 = '' if ignore else 'ALL_'
+    for occupancy in [True, False]:
+        text = 'occupancy' if occupancy else 'bin_times'
+        df = load_data(experiment, days, bin_type, xbins, ybins, occupancy, hb=True, ignore=ignore)
+
+        for timebin, dfg in df.groupby('timebin'):
+            # mousedays
+            fname = "{}_position_{}_{}_xbins{}_ybins{}_mousedays_{}{}_days".format(
+                experiment.name, text, timebin, xbins, ybins, text2, days_label)
+            df_utils.save_dataframe_to_csv(experiment, dfg, os.path.join(res_subdir, "mousedays"), fname)
+            # mice
+            grouped = dfg.groupby(['group', 'mouse'])
+            fname2 = "{}_position_{}_{}_xbins{}_ybins{}_mice_avg_{}_days".format(
+                experiment.name, text, timebin, xbins, ybins, days_label)
+            df_utils.save_dataframe_to_csv(experiment, grouped.mean(), os.path.join(res_subdir, "mice"), fname2)
+            # groups
+            grouped = dfg.groupby(['group'])
+            fname3 = "{}_position_{}_{}_xbins{}_ybins{}_groups_avg_{}_days".format(
+                experiment.name, text, timebin, xbins, ybins, days_label)
+            df_utils.save_dataframe_to_csv(experiment, grouped.mean(), os.path.join(res_subdir, "groups"), fname3)
+
+    # homebase
+    df_hb = experiment.load_homebase_data(days)
+    fname = '{}_homebase_location_mousedays'.format(experiment.name)
+    df_utils.save_dataframe_to_csv(experiment, df_hb, res_subdir, filename=fname)
+
+
+def position_density(experiment, obs_period, htype='group', bin_type='7cycles', xbins=2, ybins=4, ignore=False,
+                     csv_file=False):
     """Draws position density plots. """
     days = obs_period_to_days[experiment.name][obs_period]
     timebins = cycle_timebins[bin_type]
@@ -85,12 +117,16 @@ def position_density(experiment, obs_period, htype='group', bin_type='7cycles', 
     kwargs = dict(xticks=[], yticks=[], title='', xlabel='', ylabel='')
     days_label = obs_period.replace('-', '_').replace(' ', '_')
 
-    if htype == 'group':
-        # load data
-        df_all = load_data(experiment, days, bin_type, xbins, ybins, occupancy=True, hb=False, ignore=ignore)
+    if csv_file:
+        write_to_csv(experiment, obs_period, bin_type, xbins, ybins, ignore)
 
-        if 1:
-            # figure: group averages
+    else:
+        # load data
+        hb = True if htype == 'mousedays' else False
+        df_all = load_data(experiment, days, bin_type, xbins=xbins, ybins=ybins, occupancy=True, hb=hb, ignore=ignore)
+
+        if htype == 'groups':
+            # figure1: group averages
             # tidy form
             id_vars = ['group', 'timebin']
             dfm = df_all.groupby(id_vars).agg(np.mean)
@@ -98,7 +134,7 @@ def position_density(experiment, obs_period, htype='group', bin_type='7cycles', 
             # figure
             g = sns.FacetGrid(dft, row='group', col='timebin', col_order=timebins, height=2,
                               gridspec_kws={'wspace': 0.05})
-            g = g.map_dataframe(draw_imshow, xbins, ybins, hb=False, annotate=True).set(**kwargs)
+            g = g.map_dataframe(draw_imshow, xbins, ybins, hb=hb, annotate=True).set(**kwargs)
             # layout
             colorbar(g)
             set_facetgrid_labels(g)  # rows and cols labels
@@ -111,17 +147,15 @@ def position_density(experiment, obs_period, htype='group', bin_type='7cycles', 
             save_figure(experiment, g.fig, res_subdir, filename=fname)
             plt.close()
 
-        if 1:
-            # figure: group averages, day by day
+            # figure2: group averages, day by day
             res_subdir = os.path.join(res_subdir, 'days_breakdown')
             id_vars = ['group', 'day', 'timebin']
             dfm = df_all.groupby(id_vars).agg(np.mean)
             dft = pd.melt(dfm.reset_index(), id_vars=id_vars, var_name=var_name, value_name=value_name)
-            # stop
             for timebin, dfg in dft.groupby(['timebin']):
                 # figure
                 g = sns.FacetGrid(dfg, row='group', col='day', height=2, gridspec_kws={'wspace': 0.05})
-                g = g.map_dataframe(draw_imshow, xbins, ybins, hb=False, annotate=True).set(**kwargs)
+                g = g.map_dataframe(draw_imshow, xbins, ybins, hb=hb, annotate=True).set(**kwargs)
                 # layout
                 colorbar(g)
                 set_facetgrid_labels(g)  # rows and cols labels
@@ -134,68 +168,45 @@ def position_density(experiment, obs_period, htype='group', bin_type='7cycles', 
                 save_figure(experiment, g.fig, res_subdir, fname)
                 plt.close()
 
-    elif htype == 'mouse':
-        # load data
-        df_all = load_data(experiment, days, bin_type, xbins, ybins, occupancy=True, hb=False, ignore=ignore)
-        id_vars = ['group', 'mouse', 'timebin']
-        dfm = df_all.groupby(id_vars).agg(np.mean)
-        dft = pd.melt(dfm.reset_index(), id_vars=id_vars, var_name=var_name, value_name=value_name)
-        for group_name, dfg in dft.groupby(['group']):
-            group_number = experiment.group_number(group_name)
-            # figure
-            g = sns.FacetGrid(dfg, row='timebin', col='mouse', height=2, gridspec_kws={'wspace': 0.05})
-            g = g.map_dataframe(draw_imshow, xbins, ybins, hb=False, annotate=True).set(**kwargs)
-            # layout
-            colorbar(g)
-            set_facetgrid_labels(g)  # rows and cols labels
-            title = "{}\nposition density {}x{}, {}\ngroup{}: {}\n{} days:\n{}" \
-                .format(str(experiment), xbins, ybins, bin_type, group_number, group_name, obs_period, days)
-            add_figtitle(g.fig, title, y=0.95)
-            # save
-            fname = "{}_position_{}_xbins{}_ybins{}_grp{}_{}_avg_{}_days" \
-                .format(experiment.name, bin_type, xbins, ybins, group_number, group_name, days_label)
-            save_figure(experiment, g.fig, res_subdir, filename=fname)
-            plt.close()
+        elif htype == 'mice':
+            id_vars = ['group', 'mouse', 'timebin']
+            dfm = df_all.groupby(id_vars).agg(np.mean)
+            dft = pd.melt(dfm.reset_index(), id_vars=id_vars, var_name=var_name, value_name=value_name)
+            for group_name, dfg in dft.groupby(['group']):
+                group_number = experiment.group_number(group_name)
+                # figure
+                g = sns.FacetGrid(dfg, row='timebin', col='mouse', height=2, gridspec_kws={'wspace': 0.05})
+                g = g.map_dataframe(draw_imshow, xbins, ybins, hb=False, annotate=True).set(**kwargs)
+                # layout
+                colorbar(g)
+                set_facetgrid_labels(g)  # rows and cols labels
+                title = "{}\nposition density {}x{}, {}\ngroup{}: {}\n{} days:\n{}" \
+                    .format(str(experiment), xbins, ybins, bin_type, group_number, group_name, obs_period, days)
+                add_figtitle(g.fig, title, y=0.95)
+                # save
+                fname = "{}_position_{}_xbins{}_ybins{}_grp{}_{}_avg_{}_days" \
+                    .format(experiment.name, bin_type, xbins, ybins, group_number, group_name, days_label)
+                save_figure(experiment, g.fig, res_subdir, filename=fname)
+                plt.close()
 
-    elif htype == 'mouseday':
-        res_subdir = os.path.join(res_subdir, 'xbins{}_ybins{}'.format(xbins, ybins))
-        # load data
-        df_all = load_data(experiment, days, bin_type, xbins, ybins, occupancy=True, hb=True, ignore=ignore)
-
-        id_vars = ['group', 'mouse', 'day', 'timebin', 'detected', 'observed']
-        dft = pd.melt(df_all.reset_index(), id_vars=id_vars, var_name=var_name, value_name=value_name)
-        for name, dfg in dft.groupby(['group', 'mouse']):
-            group_name, mouse_name = name
-            group_number = experiment.group_number(group_name)
-            # figure
-            g = sns.FacetGrid(dfg, row='timebin', col='day', height=2, gridspec_kws={'wspace': 0.05})
-            g = g.map_dataframe(draw_imshow, xbins, ybins, hb=True, annotate=True).set(**kwargs)
-            # layout
-            colorbar(g)
-            set_facetgrid_labels(g)  # rows and cols labels
-            title = "{}\nposition density {}x{}, {}\ngroup{}: {}, {}\n{} days:\n}" \
-                .format(str(experiment), xbins, ybins, bin_type, group_number, group_name, mouse_name, obs_period, days)
-            add_figtitle(g.fig, title, y=0.95)
-            # save
-            fname = "{}_position_{}_xbins{}_ybins{}_grp{}_{}_{}_{}_days" \
-                .format(experiment.name, bin_type, xbins, ybins, group_number, group_name, mouse_name, days_label)
-            save_figure(experiment, g.fig, res_subdir, filename=fname)
-            plt.close()
-
-
-def write_to_csv(experiment, obs_period, bin_type, xbins=2, ybins=4, ignore=True):
-    """ rewrite """  # todo: rewrite
-    res_subdir = os.path.join('position_density', 'csv_files')
-    days = obs_period_to_days[experiment.name][obs_period]
-    days_label = obs_period.replace('-', '_').replace(' ', '_')
-    for occupancy in [True, False]:
-        df = load_data(experiment, days, bin_type, xbins, ybins, occupancy=occupancy, hb=False, ignore=ignore)
-        for timebin, dfg in df.groupby('timebin'):
-            fname = "{}_position_{}_{}_xbins{}_ybins{}_{}mousedays_{}_days" \
-                .format(experiment.name, 'occupancy' if occupancy else 'bin_times', timebin, xbins, ybins,
-                        '' if ignore else 'ALL_', days_label)
-            df_utils.save_dataframe_to_csv(experiment, dfg, res_subdir, fname)
-
-    df_hb = experiment.load_homebase_data(days)
-    fname = '{}_homebase_location_mousedays'.format(experiment.name)
-    df_utils.save_dataframe_to_csv(experiment, df_hb, res_subdir, filename=fname)
+        elif htype == 'mousedays':
+            res_subdir = os.path.join(res_subdir, 'xbins{}_ybins{}'.format(xbins, ybins))
+            id_vars = ['group', 'mouse', 'day', 'timebin', 'detected', 'observed']
+            dft = pd.melt(df_all.reset_index(), id_vars=id_vars, var_name=var_name, value_name=value_name)
+            for name, dfg in dft.groupby(['group', 'mouse']):
+                group_name, mouse_name = name
+                group_number = experiment.group_number(group_name)
+                # figure
+                g = sns.FacetGrid(dfg, row='timebin', col='day', height=2, gridspec_kws={'wspace': 0.05})
+                g = g.map_dataframe(draw_imshow, xbins, ybins, hb=hb, annotate=True).set(**kwargs)
+                # layout
+                colorbar(g)
+                set_facetgrid_labels(g)  # rows and cols labels
+                title = "{}\nposition density {}x{}, {}\ngroup{}: {}, {}\n{} days:\n{}".format(
+                    str(experiment), xbins, ybins, bin_type, group_number, group_name, mouse_name, obs_period, days)
+                add_figtitle(g.fig, title, y=0.95)
+                # save
+                fname = "{}_position_{}_xbins{}_ybins{}_grp{}_{}_{}_{}_days".format(
+                    experiment.name, bin_type, xbins, ybins, group_number, group_name, mouse_name, days_label)
+                save_figure(experiment, g.fig, res_subdir, filename=fname)
+                plt.close()

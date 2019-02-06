@@ -19,7 +19,7 @@ import json
 from ..helpers import read_MSI_file
 from .. import fixer
 from util.utils import timing
-from util.file_utils import datadir, find_files, mouseday_label_from_filename
+from util.file_utils import datadir, find_files, mouseday_label_from_filename, hcm_dir
 from util.df_utils import set_df_indices
 
 logger = logging.getLogger()
@@ -286,7 +286,7 @@ class Experiment(object):
 
     def path_to_results(self, subdir=''):
         """Returns path for analysis results and visualizations: /results/<exp_name>/<subdir>/ """
-        path = os.path.join(datadir(self.name), 'results', self.name, subdir)
+        path = os.path.join(hcm_dir(), 'results', self.name, subdir)
         if not os.path.isdir(path):
             os.makedirs(path)
         return path

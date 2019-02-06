@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+from visualization import raster_distance_mouseday
 from visualization.plot_util import plot_utils
 from visualization.plot_util.plot_colors_old import fcols
 from core.keys import obs_period_to_days
@@ -105,7 +106,7 @@ def group_rasters(experiment, obs_period=(), write_days=True, as_only=False):
         plot_utils.add_figtitle(fig, figtitle, y=0.97)
         plt.subplots_adjust(hspace=0.4)
         text = '' if not as_only else "AS_only"
-        filename = "{}_{}_raster_group{}_{}_{}_days".format(experiment.name, text, group.number, group.name, suffix)
+        filename = "{}_raster_group{}_{}_{}_days_{}".format(experiment.name, group.number, group.name, suffix, text)
         plot_utils.save_figure(experiment, fig, subdir='rasters', filename=filename)
         plt.close()
 
@@ -115,7 +116,7 @@ def mouse_raster(experiment, obs_period=(), mouse_label=None, write_days=True, a
     days = obs_period_to_days[experiment.name][obs_period]
     num_days = len(days)
     suffix = obs_period.replace('-', '_').replace(' ', '_')
-    mouse = experiment.mouse_object(mouse_label)
+    mouse = experiment.mouse_object(('', mouse_label))
     fig, ax = plt.subplots(figsize=(12, 8))
 
     for cnt, md in enumerate(mouse.mousedays(days)):
@@ -131,14 +132,27 @@ def mouse_raster(experiment, obs_period=(), mouse_label=None, write_days=True, a
     figtitle = "{}\n{}\n{} days: {}".format(str(experiment), str(mouse), suffix, days)
     plot_utils.add_figtitle(fig, figtitle, y=0.97)
     text = '' if not as_only else "AS_only"
-    filename = "{}_{}_raster_group{}_{}_indv{}_{}_{}_days".format(experiment.name, text, mouse.group.number,
-                                                                  mouse.group.name, mouse.number, mouse.name, suffix)
+    filename = "{}_raster_group{}_{}_indv{}_{}_{}_days_{}" \
+        .format(experiment.name, mouse.group.number, mouse.group.name, mouse.number, mouse.name, suffix, text)
     plot_utils.save_figure(experiment, fig, subdir='rasters/mice', filename=filename)
     plt.close()
 
 
-def all_mice_rasters(experiment, obs_period=(), write_days=True, as_only=False):
+def all_mice_rasters(experiment, obs_period=None, write_days=True, as_only=False):
     """Draws individual rasters for all mice. """
     for g in experiment.groups:
         for m in g.mice:
             mouse_raster(experiment, obs_period, mouse_label=m.label, write_days=write_days, as_only=as_only)
+
+
+def raster(experiment, obs_period=None, htype=None, mouse_label=None, write_days=False, as_only=False):
+    """Draws raster plot """
+    if htype == "groups":
+        group_rasters(experiment, obs_period, write_days, as_only)
+    elif htype == "mice":
+        if mouse_label is not None:
+            mouse_raster(experiment, obs_period, mouse_label, write_days, as_only)
+        else:
+            all_mice_rasters(experiment, obs_period, write_days, as_only)
+    elif htype == "mousedays":
+        raster_distance_mouseday.plot_all_mds(experiment, obs_period)

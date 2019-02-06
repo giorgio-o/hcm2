@@ -38,9 +38,9 @@ def set_fdl_legends(g, palettes, hue):
 def set_fdl_layout(g, bin_type, palettes, labelsize=8, lw=1.5):
     # xticks and labels
     _, xlabels, xlabel = get_ct_bins_xticks_labels(bin_type)
-    g.set_axis_labels('', '')\
-        .set_xticklabels(xlabels, fontsize=labelsize)\
-        .set_titles('')\
+    g.set_axis_labels('', '') \
+        .set_xticklabels(xlabels, fontsize=labelsize) \
+        .set_titles('') \
         .set_xlabels(xlabel)
     set_facetgrid_labels(g, ROWS=False)  # outer labels
 
@@ -105,11 +105,11 @@ def facets_group_avgs(experiment, obs_period, bin_type, err_type, ignore):
     # layout
     set_fdl_layout(g, bin_type, palettes)
     set_fdl_legends(g, palettes, hue='group')
-    title = "{}\nfeeding, drinking and locomotion features, {}\ngroup averages $\pm$ {}\n{} days:\n{}"\
-        .format(str(experiment), bins_label, err_type, days_label, days)
+    title = "{}\nfeeding, drinking and locomotion features, {}\ngroup averages $\pm$ {}\n{} days:\n{}".format(
+        str(experiment), bins_label, err_type, days_label, days)
     add_figtitle(g.fig, title, y=1.1, xpad=-0.05, ypad=-0.03)
     plt.subplots_adjust(wspace=0.3)  # necessary, or custom legend will screw the layout up
     # save
-    fname = "{}_feeding_drinking_locomotion_features_vs_CT_{}_grp_avg_{}_{}_days"\
+    fname = "{}_feeding_drinking_locomotion_features_vs_CT_{}_grp_avg_{}_{}_days" \
         .format(experiment.name, bin_type, err_type, days_label)
     save_figure(experiment, g.fig, res_subdir, fname)
