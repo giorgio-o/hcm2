@@ -63,7 +63,9 @@ def get_xaxis_boundaries(md_data, as_num):
 
 
 def draw_rectangle_around_active_state(ax, tstart, tend):
-    pat = patches.Rectangle(xy=(tstart, -12), width=tend - tstart, height=75, lw=1, fc='none', ec='0.5', zorder=0)
+    dt = tend - tstart
+    pat = patches.Rectangle(xy=(tstart-0.15*dt, -17), width=dt + 0.3*dt, height=90, lw=0.7, fc='0.9', ec='0.5',
+                            alpha=0.9, zorder=0)
     ax.add_patch(pat)
 
 
@@ -111,13 +113,13 @@ def show_timeset_durations(ax, md_data, tstart, tend):
         show_durations(ax, tset_in_bin, offset, key, color)
 
 
-def zoom_in_xaxis(ax, tstart, tend, tstep=None):
+def zoom_in_xaxis(ax, tstart, tend, tstep=None, label_rotation=90):
     ax.set_xlim(tstart, tend)
     tstep = get_tstep(tstart, tend) if tstep is None else tstep
     xticks = np.arange(tstart, tend, tstep)
     xticklabels = [utils.hcm_time_to_ct_string(xtick) for xtick in (xticks + 7) * 3600]
     ax.set_xticks(xticks)
-    ax.set_xticklabels(xticklabels, fontsize=8, rotation=90)
+    ax.set_xticklabels(xticklabels, fontsize=8, rotation=label_rotation)
 
 
 def plot_velocity(ax, md_data, lw=0.3):
@@ -208,7 +210,7 @@ def set_layout(ax):
     yticks = range(0, 45, 10)
     ax.set_yticks(yticks)
     ax.set_yticklabels(yticks)
-    ax.set_ylabel('distance from\nlickometer [cm]', fontsize=8, labelpad=5)
+    ax.set_ylabel("distance [cm]", fontsize=8, labelpad=5)#'distance from\nlickometer [cm]', fontsize=8, labelpad=5)
     ax.set_xlabel(xlabel, fontsize=10)
     ax.tick_params(labelsize=8)
     ax.tick_params(axis='x', which='minor')
@@ -220,7 +222,6 @@ def set_layout(ax):
 
 def draw_timesets(ax, md_data):
     """ Draw raster element for timesets. """
-    cnt = 0
     for key, val in tset_keys.iteritems():
         tset = md_data[key] / 3600 - 7
         offset, height, color = [val[y] for y in subkeys]
@@ -228,7 +229,6 @@ def draw_timesets(ax, md_data):
             # xy lower left corner
             pat = patches.Rectangle(xy=(x1, offset), width=x2 - x1, height=height, lw=0.001, fc=color, ec=color)
             ax.add_patch(pat)
-        cnt += 1
 
 
 def draw_distance_and_loco_events(ax, md_data, lw):
@@ -292,14 +292,15 @@ def plot_as(md, as_num, vel=None):
     return fig
 
 
-def plot_manual_zoomin(md, tstart, dt, tstep):
+def plot_manual_zoomin(md, tstart, dt, tstep, VEL=True):
     md_data = md.data['preprocessing']
     tend = tstart + dt
     ts, te = [utils.hcm_time_to_ct_string((x+7)*3600) for x in (tstart, tend)]
     print "plotting manual Zoom-In: CT{} to CT{} ..".format(ts, te)
     fig, ax = plt.subplots(figsize=(10, 3))
     plot_md(ax, md_data, lw=1)
-    plot_velocity(ax, md_data)
+    if VEL:
+        plot_velocity(ax, md_data)
     zoom_in_xaxis(ax, tstart, tend, tstep)
     show_timeset_durations(ax, md_data, tstart, tend)
     figtitle = 'Experiment: {}\ngroup: {}, {}, day: {}\nZoom-In: CT{} to CT{}'.format(

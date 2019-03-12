@@ -12,7 +12,7 @@ import argparse
 from util import utils
 from core.model.experiment import Experiment
 from visualization import position_density, rasters
-from visualization import features_vs_ct_as_groups_avg, features_vs_ct_fdl_groups_avg
+from visualization import features_vs_ct_as_groups_avg, features_vs_ct_fdl_groups_avg, features_vs_ct_csvfiles
 from visualization import features_vs_ct_groups_day_breakdown
 from visualization import features_vs_ct_as_groups_avg_days_comparison
 from visualization import breakfast, breakfast_days_comparison
@@ -93,8 +93,7 @@ def main():
         htype, bin_type, day_break = args.htype, args.bin_type, args.day_break
         if htype == "groups":
             if csv_file:
-                pass
-                # features_vs_ct.write_to_csv(experiment, obs_period, bin_type, ignore)
+                features_vs_ct_csvfiles.write_to_csv(experiment, obs_period, bin_type, ignore)
             else:
                 features_vs_ct_as_groups_avg.facets_group_avgs(experiment, obs_period, bin_type, err_type, ignore)
                 features_vs_ct_fdl_groups_avg.facets_group_avgs(experiment, obs_period, bin_type, err_type, ignore)
@@ -142,6 +141,8 @@ def main():
             within_as_structure_days_comparison.within_as_structure_mice(experiment, num_mins)
             within_as_structure_days_comparison.within_as_structure_groups(experiment, num_mins)
 
+    else:
+        raise ValueError("Unknown code {}".format(akind))
 
 if __name__ == '__main__':
     main()

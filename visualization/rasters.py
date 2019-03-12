@@ -131,8 +131,8 @@ def mouse_raster(experiment, obs_period=(), mouse_label=None, write_days=True, a
 
     figtitle = "{}\n{}\n{} days: {}".format(str(experiment), str(mouse), suffix, days)
     plot_utils.add_figtitle(fig, figtitle, y=0.97)
-    text = '' if not as_only else "AS_only"
-    filename = "{}_raster_group{}_{}_indv{}_{}_{}_days_{}" \
+    text = '' if not as_only else "_AS_only"
+    filename = "{}_raster_group{}_{}_indv{}_{}_{}_days{}" \
         .format(experiment.name, mouse.group.number, mouse.group.name, mouse.number, mouse.name, suffix, text)
     plot_utils.save_figure(experiment, fig, subdir='rasters/mice', filename=filename)
     plt.close()

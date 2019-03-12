@@ -82,7 +82,7 @@ class Experiment(object):
 
     def mouse_object(self, label):
         """Returns a mouse given its name (e.g., (group_name, mouse_number)"""
-        return (m for m in self.mice if m.name == label[1]).next()
+        return (m for m in self.mice if m.label == label[1]).next()
 
     def mouseday_object(self, label):
         """Returns a mouse given its name (e.g., (group_name, mouse_number, day)) """

@@ -14,6 +14,7 @@ core/model/.DS_Store
 core/util/.DS_Store
 callers/quality.py
 tmp/
+visualizations/*.pyc
 .spyproject
 .idea
 
